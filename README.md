@@ -95,8 +95,8 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 MIT
 
 ## Maintainers
-- [Your Name](mailto:your.info@goldenimpactdevs.com)
-- [Your Organization](https://www.goldenimpactdevs.com)
+- [Emmanuel Nwachukwu](mailto:your.info@goldenimpactdevs.com)
+- [Golden Impact Digitals](https://www.goldenimpactdevs.com)
 
 ---
 

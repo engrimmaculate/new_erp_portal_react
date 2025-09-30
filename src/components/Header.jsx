@@ -23,7 +23,7 @@ const Header = ({ setSidebarOpen }) => {
   };
 
   return (
-    <header className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-20">
+    <header className="sidebar-gradient text-white shadow-2xl backdrop-blur-lg border-b border-gray-200 sticky top-0 z-20">
       <div className="flex items-center justify-between h-16 px-4 md:px-8">
         <div className="flex items-center">
           <button
@@ -41,15 +41,15 @@ const Header = ({ setSidebarOpen }) => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100"
+                className="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 hover:text-red-500 transition-colors duration-200 pr-3"
               >
                 <Avatar>
                   <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
                   <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-gray-800">Admin User</p>
-                  <p className="text-xs text-gray-500">Superadmin</p>
+                  <p className="text-sm font-medium text-white hover:text-red-500">Admin User</p>
+                  <p className="text-xs text-white hover:text-red-500">Superadmin</p>
                 </div>
               </motion.button>
             </DropdownMenuTrigger>

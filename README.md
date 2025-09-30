@@ -1,16 +1,29 @@
+
 # Golden ERP Portal
 
-A modern, role-based ERP portal built with React, Tailwind CSS, and Framer Motion. This app features authentication, user management, responsive design, and custom theming for enterprise resource planning with a comprehensive accounting operations such as Customer and Customers Management,  Billing and Invoicing management, Vendors and Vendor Management System, HR & Payroll Systems, Leave and permission management, Projects Management system, QHSSE and Access Control Systems,Work Permits System, as well Fitness to Work, Fleet Management System, Journey management
+A modern, role-based ERP portal built with React, Tailwind CSS, and Framer Motion. This app features authentication, user management, responsive design, and custom theming for enterprise resource planning. It includes comprehensive modules for:
+
+- Accounting operations
+- Customer and customer management
+- Billing and invoicing management
+- Vendor and vendor management system
+- HR & payroll systems
+- Leave and permission management
+- Project management system
+- QHSSE and access control systems
+- Work permits system
+- Fitness to work
+- Fleet management system
+- Journey management
 
 ## Features
 
-- **User Authentication**: Login/logout, role-based access, and user context
-- **Role Management**: Admin dashboard for managing users and assigning roles
-- **Responsive Sidebar**: Always visible on desktop, toggled on mobile, with role-based menu items
-- **Custom Theming**: Red primary color, black secondary, white text, and gradient backgrounds
-- **Dashboard Views**: Optimized dashboard content for each user type
-- **Modern UI**: Framer Motion animations, lucide-react icons, and Tailwind CSS styling
-- **Password Visibility Toggle**: User-friendly login form with icons and show/hide password
+- **User Authentication & Role Management**: Secure login/logout, role-based access, and user context. Admin dashboard for managing users and assigning roles.
+- **Responsive Sidebar Navigation**: Sidebar is always visible on desktop, toggled on mobile, and adapts menu items based on user role.
+- **Custom Theming**: Red primary color, black secondary, white text, and gradient backgrounds for a modern look.
+- **Dashboard Views**: Optimized dashboard content for each user type, covering all major ERP modules listed above.
+- **Modern UI/UX**: Framer Motion animations, lucide-react icons, and Tailwind CSS styling.
+- **Password Visibility Toggle**: User-friendly login form with icons and show/hide password functionality.
 
 ## Project Structure
 

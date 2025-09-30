@@ -174,9 +174,123 @@ export function ProjectDashboard() {
 
   // Modal state
   const [showProjectModal, setShowProjectModal] = useState(false);
+  const [showEditProjectModal, setShowEditProjectModal] = useState(false);
+  const [editProjectId, setEditProjectId] = useState(null);
+  const [editProject, setEditProject] = useState({
+    code: "",
+    name: "",
+    description: "",
+    client: "",
+    site: "",
+    startDate: "",
+    endDate: "",
+    cost: "",
+    revenue: "",
+    status: "Pending",
+    progress: 0,
+    activities: []
+  });
+  const openEditProjectModal = (project) => {
+    setEditProjectId(project.id);
+    setEditProject({
+      code: project.code,
+      name: project.name,
+      description: project.description,
+      client: project.client,
+      site: project.site,
+      startDate: project.startDate,
+      endDate: project.endDate,
+      cost: project.cost,
+      revenue: project.revenue,
+      status: project.status,
+      progress: project.progress,
+      activities: project.activities || []
+    });
+    setShowEditProjectModal(true);
+  };
+
+  const handleEditProjectInput = (e) => {
+    const { name, value } = e.target;
+    setEditProject((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const saveEditProject = () => {
+    setProjects(projects => projects.map(p =>
+      p.id === editProjectId
+        ? {
+            ...p,
+            ...editProject,
+            cost: Number(editProject.cost),
+            revenue: Number(editProject.revenue),
+            progress: Number(editProject.progress)
+          }
+        : p
+    ));
+    setTimeout(() => {
+      setShowEditProjectModal(false);
+      setEditProjectId(null);
+    }, 100);
+  };
+  const EditProjectModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
+        <h2 className="text-xl font-bold mb-4">Edit Project</h2>
+        <form className="space-y-3" onSubmit={e => { e.preventDefault(); saveEditProject(); }}>
+          <input name="code" value={editProject.code} onChange={handleEditProjectInput} className="border rounded p-2 w-full" placeholder="Project Code" required />
+          <input name="name" value={editProject.name} onChange={handleEditProjectInput} className="border rounded p-2 w-full" placeholder="Project Name" required />
+          <textarea name="description" value={editProject.description} onChange={handleEditProjectInput} className="border rounded p-2 w-full" placeholder="Description" rows={2} />
+          <input name="client" value={editProject.client} onChange={handleEditProjectInput} className="border rounded p-2 w-full" placeholder="Client" required />
+          <input name="site" value={editProject.site} onChange={handleEditProjectInput} className="border rounded p-2 w-full" placeholder="Site" required />
+          <div className="flex gap-2">
+            <input name="startDate" value={editProject.startDate} onChange={handleEditProjectInput} className="border rounded p-2 w-full" type="date" placeholder="Start Date" required />
+            <input name="endDate" value={editProject.endDate} onChange={handleEditProjectInput} className="border rounded p-2 w-full" type="date" placeholder="End Date" required />
+          </div>
+          <div className="flex gap-2">
+            <input name="cost" value={editProject.cost} onChange={handleEditProjectInput} className="border rounded p-2 w-full" type="number" placeholder="Cost" required />
+            <input name="revenue" value={editProject.revenue} onChange={handleEditProjectInput} className="border rounded p-2 w-full" type="number" placeholder="Revenue" required />
+          </div>
+          <select name="status" value={editProject.status} onChange={handleEditProjectInput} className="border rounded p-2 w-full">
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+          <input name="progress" value={editProject.progress} onChange={handleEditProjectInput} className="border rounded p-2 w-full" type="number" min="0" max="100" placeholder="Progress (%)" />
+          <div className="flex gap-2 justify-end">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => { setShowEditProjectModal(false); setEditProjectId(null); }}>Cancel</button>
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+  const [newProject, setNewProject] = useState({
+    code: "",
+    name: "",
+    description: "",
+    client: "",
+    site: "",
+    startDate: "",
+    endDate: "",
+    cost: "",
+    revenue: "",
+    status: "Pending",
+    progress: 0,
+    activities: []
+  });
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [viewActivitiesProject, setViewActivitiesProject] = useState(null);
   const [viewActivity, setViewActivity] = useState(null);
+  const [activityProjectId, setActivityProjectId] = useState(null);
+  const [newActivity, setNewActivity] = useState({
+    code: "",
+    name: "",
+    assignee: "",
+    assigner: "",
+    startDate: "",
+    endDate: "",
+    progress: 0,
+    status: "Pending"
+  });
 
   // Cards summary
   const totalCost = projects.reduce((sum, p) => sum + p.cost, 0);
@@ -184,22 +298,142 @@ export function ProjectDashboard() {
   const totalRevenue = projects.reduce((sum, p) => sum + (p.revenue || 0), 0);
 
   // Modal skeletons (to be styled and implemented)
+  const handleProjectInput = (e) => {
+    const { name, value } = e.target;
+    setNewProject((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const addProject = () => {
+    // Validate required fields
+    if (!newProject.code || !newProject.name || !newProject.client || !newProject.site || !newProject.startDate || !newProject.endDate || !newProject.cost || !newProject.revenue) return;
+    setProjects(prev => [
+      ...prev,
+      {
+        ...newProject,
+        id: Date.now(),
+        cost: Number(newProject.cost),
+        revenue: Number(newProject.revenue),
+        progress: 0,
+        activities: []
+      }
+    ]);
+    // Reset form after a short delay to avoid input blur/disabling
+    setTimeout(() => {
+      setNewProject({
+        code: "",
+        name: "",
+        description: "",
+        client: "",
+        site: "",
+        startDate: "",
+        endDate: "",
+        cost: "",
+        revenue: "",
+        status: "Pending",
+        progress: 0,
+        activities: []
+      });
+      setShowProjectModal(false);
+    }, 100);
+  };
+
   const ProjectModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
         <h2 className="text-xl font-bold mb-4">Add New Project</h2>
-        {/* TODO: Add form fields for code, name, description, client, site, dates, cost, revenue, status */}
-        <button className="mt-4 bg-gray-300 px-4 py-2 rounded" onClick={() => setShowProjectModal(false)}>Close</button>
+        <form className="space-y-3" onSubmit={e => { e.preventDefault(); addProject(); }}>
+          <input name="code" value={newProject.code} onChange={handleProjectInput} className="border rounded p-2 w-full" placeholder="Project Code" required />
+          <input name="name" value={newProject.name} onChange={handleProjectInput} className="border rounded p-2 w-full" placeholder="Project Name" required />
+          <textarea name="description" value={newProject.description} onChange={handleProjectInput} className="border rounded p-2 w-full" placeholder="Description" rows={2} />
+          <input name="client" value={newProject.client} onChange={handleProjectInput} className="border rounded p-2 w-full" placeholder="Client" required />
+          <input name="site" value={newProject.site} onChange={handleProjectInput} className="border rounded p-2 w-full" placeholder="Site" required />
+          <div className="flex gap-2">
+            <input name="startDate" value={newProject.startDate} onChange={handleProjectInput} className="border rounded p-2 w-full" type="date" placeholder="Start Date" required />
+            <input name="endDate" value={newProject.endDate} onChange={handleProjectInput} className="border rounded p-2 w-full" type="date" placeholder="End Date" required />
+          </div>
+          <div className="flex gap-2">
+            <input name="cost" value={newProject.cost} onChange={handleProjectInput} className="border rounded p-2 w-full" type="number" placeholder="Cost" required />
+            <input name="revenue" value={newProject.revenue} onChange={handleProjectInput} className="border rounded p-2 w-full" type="number" placeholder="Revenue" required />
+          </div>
+          <select name="status" value={newProject.status} onChange={handleProjectInput} className="border rounded p-2 w-full">
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+          <div className="flex gap-2 justify-end">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowProjectModal(false)}>Cancel</button>
+            <button type="submit" className="bg-red-600 text-white px-4 py-2 rounded">Add Project</button>
+          </div>
+        </form>
       </div>
     </div>
   );
+
+  const handleActivityInput = (e) => {
+    const { name, value } = e.target;
+    setNewActivity((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const addActivity = () => {
+    if (!activityProjectId) return;
+    if (!newActivity.code || !newActivity.name || !newActivity.assignee || !newActivity.assigner || !newActivity.startDate || !newActivity.endDate) return;
+    setProjects(projects => projects.map(p =>
+      p.id === activityProjectId
+        ? {
+            ...p,
+            activities: [
+              ...p.activities,
+              {
+                ...newActivity,
+                id: Date.now(),
+                progress: Number(newActivity.progress),
+              }
+            ]
+          }
+        : p
+    ));
+    setTimeout(() => {
+      setNewActivity({
+        code: "",
+        name: "",
+        assignee: "",
+        assigner: "",
+        startDate: "",
+        endDate: "",
+        progress: 0,
+        status: "Pending"
+      });
+      setShowActivityModal(false);
+      setActivityProjectId(null);
+    }, 100);
+  };
 
   const ActivityModal = () => (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
         <h2 className="text-xl font-bold mb-4">Add New Activity</h2>
-        {/* TODO: Add form fields for activity details */}
-        <button className="mt-4 bg-gray-300 px-4 py-2 rounded" onClick={() => setShowActivityModal(false)}>Close</button>
+        <form className="space-y-3" onSubmit={e => { e.preventDefault(); addActivity(); }}>
+          <input name="code" value={newActivity.code} onChange={handleActivityInput} className="border rounded p-2 w-full" placeholder="Activity Code" required />
+          <input name="name" value={newActivity.name} onChange={handleActivityInput} className="border rounded p-2 w-full" placeholder="Activity Name" required />
+          <input name="assignee" value={newActivity.assignee} onChange={handleActivityInput} className="border rounded p-2 w-full" placeholder="Assignee" required />
+          <input name="assigner" value={newActivity.assigner} onChange={handleActivityInput} className="border rounded p-2 w-full" placeholder="Assigner" required />
+          <div className="flex gap-2">
+            <input name="startDate" value={newActivity.startDate} onChange={handleActivityInput} className="border rounded p-2 w-full" type="date" placeholder="Start Date" required />
+            <input name="endDate" value={newActivity.endDate} onChange={handleActivityInput} className="border rounded p-2 w-full" type="date" placeholder="End Date" required />
+          </div>
+          <div className="flex gap-2">
+            <input name="progress" value={newActivity.progress} onChange={handleActivityInput} className="border rounded p-2 w-full" type="number" min="0" max="100" placeholder="Progress (%)" />
+            <select name="status" value={newActivity.status} onChange={handleActivityInput} className="border rounded p-2 w-full">
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => { setShowActivityModal(false); setActivityProjectId(null); }}>Cancel</button>
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Add Activity</button>
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -303,10 +537,10 @@ export function ProjectDashboard() {
                   </td>
                   <td className="p-2">
                     <button className="bg-blue-500 text-white px-2 py-1 rounded text-xs" onClick={() => setViewActivitiesProject(p)}>View Activities</button>
-                    <button className="bg-green-500 text-white px-2 py-1 rounded text-xs ml-2" onClick={() => setShowActivityModal(true)}>Add Activity</button>
+                    <button className="bg-green-500 text-white px-2 py-1 rounded text-xs ml-2" onClick={() => { setShowActivityModal(true); setActivityProjectId(p.id); }}>Add Activity</button>
                   </td>
                   <td className="p-2">
-                    <button className="bg-blue-500 text-white px-2 py-1 rounded mr-1 text-xs">Edit</button>
+                    <button className="bg-blue-500 text-white px-2 py-1 rounded mr-1 text-xs" onClick={() => openEditProjectModal(p)}>Edit</button>
                     <button className="bg-red-600 text-white px-2 py-1 rounded text-xs">Delete</button>
                   </td>
                 </tr>
@@ -344,9 +578,10 @@ export function ProjectDashboard() {
       </div>
 
       {/* Modals */}
-      {showProjectModal && <ProjectModal />}
-      {showActivityModal && <ActivityModal />}
-      {viewActivitiesProject && <ViewActivitiesModal project={viewActivitiesProject} />}
+  {showProjectModal && <ProjectModal />}
+  {showEditProjectModal && <EditProjectModal />}
+  {showActivityModal && <ActivityModal />}
+  {viewActivitiesProject && <ViewActivitiesModal project={viewActivitiesProject} />}
     </div>
   );
 }

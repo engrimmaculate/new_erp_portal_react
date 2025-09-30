@@ -10,6 +10,10 @@ export const AuthProvider = ({ children }) => {
     { id: 2, username: 'hr', password: 'hr', role: 'hr' },
     { id: 3, username: 'logistics', password: 'logistics', role: 'logistics' },
     { id: 4, username: 'accounts', password: 'accounts', role: 'accounts' },
+    { id: 5, username: 'operations', password: 'operations', role: 'operations' },
+    { id: 6, username: 'business', password: 'business', role: 'business' },
+    { id: 7, username: 'qhsse', password: 'qhsse', role: 'qhsse' },
+    { id: 8, username: 'project', password: 'project', role: 'project' },
   ]);
   const [user, setUser] = useState(() => {
     // Always log out on reload

@@ -1,6 +1,6 @@
-# Keves ERP Portal
+# Golden ERP Portal
 
-A modern, role-based ERP portal built with React, Tailwind CSS, and Framer Motion. This app features authentication, user management, responsive design, and custom theming for enterprise resource planning.
+A modern, role-based ERP portal built with React, Tailwind CSS, and Framer Motion. This app features authentication, user management, responsive design, and custom theming for enterprise resource planning with a comprehensive accounting operations such as Customer and Customers Management,  Billing and Invoicing management, Vendors and Vendor Management System, HR & Payroll Systems, Leave and permission management, Projects Management system, QHSSE and Access Control Systems, Fleet Management System.
 
 ## Features
 

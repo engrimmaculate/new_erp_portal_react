@@ -335,7 +335,7 @@ const Sidebar = ({ isSidebarOpen, setSidebarOpen, userType = 'accounts' }) => {
         <div className="h-full flex flex-col text-white">
           <div className="p-6 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <img src="assets/keves-new-logo.png" alt="Keves ERP System" className="h-10 w-auto rounded-lg bg-white p-1" />
+              <img src="/assets/keves-logo-no-bg.png" alt="Keves ERP System" className="h-10 w-auto rounded-lg bg-white p-1" />
               <div>
                 {/* <h1 className="text-xl font-bold text-white">Keves</h1> */}
                 <h2 className="text-sm text-gray-200">ERP System</h2>

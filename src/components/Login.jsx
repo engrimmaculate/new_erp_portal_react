@@ -26,7 +26,7 @@ export default function Login() {
     >
       <form onSubmit={handleSubmit} className="bg-white bg-opacity-90 p-8 rounded-xl shadow-xl w-full max-w-sm relative z-10">
         <div className="flex justify-center mb-6">
-          <img src="/assets/keves-new-logo.png" alt="Company Logo" className="h-16 w-auto" />
+          <img src="/assets/keves-logo-no-bg.png" alt="Company Logo" className="h-16 w-auto" />
         </div>
         <h6 className="text-sm font-bold mb-6 text-center text-primary">Enter username and Password to Login</h6>
         {error && <div className="text-red-500 mb-4">{error}</div>}

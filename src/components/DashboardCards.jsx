@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Fragment } from "react";
 import { Card } from "./ui/Card";
 import { Building2, Users, Receipt, Banknote, UserCheck, Truck, Calendar, Shield, TrendingUp, BarChart3, Verified, LucideView, Check, FileArchive, FileBarChart } from "lucide-react";
@@ -34,70 +34,12 @@ export function LogisticsDashboard() {
 }
 
 export function AccountsDashboard() {
-  // Service Item Edit Modal
-  const [showEditServiceItemModal, setShowEditServiceItemModal] = useState(false);
-  const [editServiceItem, setEditServiceItem] = useState(null);
-
-  const openEditServiceItemModal = (item) => {
-    setEditServiceItem(item);
-    setShowEditServiceItemModal(true);
-  };
-
-  const handleEditServiceItemInput = (e) => {
-    const { name, value } = e.target;
-    setEditServiceItem((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const saveEditServiceItem = () => {
-    if (!selectedInvoice || !editServiceItem) return;
-    setInvoices(prev => prev.map(inv =>
-      inv.id === selectedInvoice.id
-        ? {
-            ...inv,
-            service_items: inv.service_items.map(item =>
-              item.id === editServiceItem.id ? { ...editServiceItem, total_amount: Number(editServiceItem.total_amount || 0) } : item
-            ),
-            amount: inv.service_items.map(item =>
-              item.id === editServiceItem.id ? Number(editServiceItem.total_amount || 0) : Number(item.total_amount || 0)
-            ).reduce((sum, amt) => sum + amt, 0)
-          }
-        : inv
-    ));
-    setShowEditServiceItemModal(false);
-    setEditServiceItem(null);
-  };
-
-  const EditServiceItemModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg overflow-y-auto max-h-[90vh]">
-        <h2 className="text-xl font-bold mb-4">Edit Service Item</h2>
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); saveEditServiceItem(); }}>
-          {editServiceItem && Object.keys(editServiceItem).map((field) => (
-            <div key={field} className="flex flex-col">
-              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
-              <input
-                name={field}
-                value={editServiceItem[field]}
-                onChange={handleEditServiceItemInput}
-                className="border rounded p-2"
-                type={field.includes('date') ? 'date' : 'text'}
-                required={field !== 'keves_merge_vendors' && field !== 'nepl_months'}
-              />
-            </div>
-          ))}
-          <div className="col-span-2 flex gap-2 justify-end mt-4">
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowEditServiceItemModal(false)}>Cancel</button>
-            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-  // Invoice state
   const [invoices, setInvoices] = useState([]);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showEditInvoiceModal, setShowEditInvoiceModal] = useState(false);
   const [showViewInvoiceModal, setShowViewInvoiceModal] = useState(false);
+  const [showServiceItemModal, setShowServiceItemModal] = useState(false);
+  const [showEditServiceItemModal, setShowEditServiceItemModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [invoiceForm, setInvoiceForm] = useState({
     invoice_no: "",
@@ -143,8 +85,7 @@ export function AccountsDashboard() {
     transport_fees: "",
     service_items: []
   });
-  // Service Item modal state
-  const [showServiceItemModal, setShowServiceItemModal] = useState(false);
+  const [editServiceItem, setEditServiceItem] = useState(null);
   const [serviceItemForm, setServiceItemForm] = useState({
     invoice_id: "",
     item_code: "",
@@ -168,13 +109,22 @@ export function AccountsDashboard() {
     days_from: ""
   });
 
-  // Modal skeletons (to be implemented)
-  const handleInvoiceInput = (e) => {
+  const handleInvoiceInput = useCallback((e) => {
     const { name, value } = e.target;
     setInvoiceForm((prev) => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const addInvoice = () => {
+  const handleEditServiceItemInput = useCallback((e) => {
+    const { name, value } = e.target;
+    setEditServiceItem((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  const handleServiceItemInput = useCallback((e) => {
+    const { name, value } = e.target;
+    setServiceItemForm((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  const addInvoice = useCallback(() => {
     setInvoices(prev => [
       ...prev,
       {
@@ -228,119 +178,71 @@ export function AccountsDashboard() {
       service_items: []
     });
     setShowInvoiceModal(false);
-  };
+  }, [invoiceForm]);
 
-  const InvoiceModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
-        <h2 className="text-xl font-bold mb-4">Create Invoice</h2>
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); addInvoice(); }}>
-          {Object.keys(invoiceForm).filter(f => f !== 'service_items').map((field) => (
-            <div key={field} className="flex flex-col">
-              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
-              <input
-                name={field}
-                value={invoiceForm[field]}
-                onChange={handleInvoiceInput}
-                className="border rounded p-2"
-                type={field.includes('date') ? 'date' : 'text'}
-                required={field !== 'management_fees' && field !== 'transport_fees'}
-              />
-            </div>
-          ))}
-          <div className="col-span-2 flex gap-2 justify-end mt-4">
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowInvoiceModal(false)}>Cancel</button>
-            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Create Invoice</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+  const saveEditServiceItem = useCallback(() => {
+    if (!selectedInvoice || !editServiceItem) return;
+    setInvoices(prev => prev.map(inv =>
+      inv.id === selectedInvoice.id
+        ? {
+            ...inv,
+            service_items: inv.service_items.map(item =>
+              item.id === editServiceItem.id ? { ...editServiceItem, total_amount: Number(editServiceItem.total_amount || 0) } : item
+            ),
+            amount: inv.service_items.map(item =>
+              item.id === editServiceItem.id ? Number(editServiceItem.total_amount || 0) : Number(item.total_amount || 0)
+            ).reduce((sum, amt) => sum + amt, 0)
+          }
+        : inv
+    ));
+    setShowEditServiceItemModal(false);
+    setEditServiceItem(null);
+  }, [selectedInvoice, editServiceItem]);
 
-  const EditInvoiceModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
-        <h2 className="text-xl font-bold mb-4">Edit Invoice</h2>
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); /* handle edit logic here */ setShowEditInvoiceModal(false); }}>
-          {Object.keys(invoiceForm).filter(f => f !== 'service_items').map((field) => (
-            <div key={field} className="flex flex-col">
-              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
-              <input
-                name={field}
-                value={invoiceForm[field]}
-                onChange={handleInvoiceInput}
-                className="border rounded p-2"
-                type={field.includes('date') ? 'date' : 'text'}
-                required={true}
-              />
-            </div>
-          ))}
-          <div className="col-span-2 flex gap-2 justify-end mt-4">
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowEditInvoiceModal(false)}>Cancel</button>
-            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+  const openEditServiceItemModal = useCallback((item) => {
+    setEditServiceItem(item);
+    setShowEditServiceItemModal(true);
+  }, []);
 
-  const ViewInvoiceModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
-        <h2 className="text-xl font-bold mb-4">Invoice Details</h2>
-        {selectedInvoice && (
-          <div id="print-invoice">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {Object.keys(selectedInvoice).filter(f => f !== 'service_items').map((field) => (
-                <div key={field} className="flex flex-col">
-                  <span className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</span>
-                  <span className="text-gray-900">{selectedInvoice[field]}</span>
-                </div>
-              ))}
-            </div>
-            <h3 className="text-lg font-bold mb-2">Service Items</h3>
-            <table className="min-w-full text-left mb-4">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="p-2">Item Code</th>
-                  <th className="p-2">Description</th>
-                  <th className="p-2">Quantity</th>
-                  <th className="p-2">Day Rate</th>
-                  <th className="p-2">Total Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedInvoice.service_items && selectedInvoice.service_items.map(item => (
-                  <tr key={item.id} className="border-b">
-                    <td className="p-2 font-mono">{item.item_code}</td>
-                    <td className="p-2">{item.description}</td>
-                    <td className="p-2">{item.quantity}</td>
-                    <td className="p-2">{item.day_rate}</td>
-                    <td className="p-2">${item.total_amount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {/* Subtotal, VAT, Grand Total */}
-            <div className="flex flex-col gap-2 mb-4">
-              <div className="flex justify-between"><span className="font-semibold">Subtotal:</span> <span>${selectedInvoice.service_items ? selectedInvoice.service_items.reduce((sum, item) => sum + Number(item.total_amount || 0), 0) : 0}</span></div>
-              <div className="flex justify-between"><span className="font-semibold">VAT (7.5%):</span> <span>${selectedInvoice.service_items ? (selectedInvoice.service_items.reduce((sum, item) => sum + Number(item.total_amount || 0), 0) * 0.075).toFixed(2) : 0}</span></div>
-              <div className="flex justify-between"><span className="font-semibold">Grand Total:</span> <span>${selectedInvoice.service_items ? (selectedInvoice.service_items.reduce((sum, item) => sum + Number(item.total_amount || 0), 0) * 1.075).toFixed(2) : 0}</span></div>
-            </div>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded mb-2" onClick={() => window.print()}>Print Invoice</button>
-          </div>
-        )}
-        <button className="mt-4 bg-gray-300 px-4 py-2 rounded" onClick={() => setShowViewInvoiceModal(false)}>Close</button>
-      </div>
-    </div>
-  );
+  const openEditInvoice = useCallback((invoice) => {
+    setSelectedInvoice(invoice);
+    setInvoiceForm({ ...invoice });
+    setShowEditInvoiceModal(true);
+  }, []);
 
-  const handleServiceItemInput = (e) => {
-    const { name, value } = e.target;
-    setServiceItemForm((prev) => ({ ...prev, [name]: value }));
-  };
+  const openViewInvoice = useCallback((invoice) => {
+    setSelectedInvoice(invoice);
+    setShowViewInvoiceModal(true);
+  }, []);
 
-  const addServiceItem = () => {
+  const openServiceItemModal = useCallback((invoice) => {
+    setSelectedInvoice(invoice);
+    setServiceItemForm({
+      invoice_id: invoice.id,
+      item_code: "",
+      description: "",
+      vehicle_no: "",
+      days_worked: "",
+      no_of_persons: "",
+      quantity: "",
+      total_qty: "",
+      day_rate: "",
+      keves_merge_vendors: "",
+      total_amount: "",
+      service_category_id: "",
+      unit: "",
+      rate: "",
+      invoice_item_class: "",
+      location_id: "",
+      uom: "",
+      nepl_months: "",
+      days_to: "",
+      days_from: ""
+    });
+    setShowServiceItemModal(true);
+  }, []);
+
+  const addServiceItem = useCallback(() => {
     if (!selectedInvoice) return;
     const newItem = {
       ...serviceItemForm,
@@ -379,9 +281,9 @@ export function AccountsDashboard() {
       days_from: ""
     });
     setShowServiceItemModal(false);
-  };
+  }, [selectedInvoice, serviceItemForm]);
 
-  const deleteServiceItem = (itemId) => {
+  const deleteServiceItem = useCallback((itemId) => {
     if (!selectedInvoice) return;
     setInvoices(prev => prev.map(inv =>
       inv.id === selectedInvoice.id
@@ -392,71 +294,12 @@ export function AccountsDashboard() {
           }
         : inv
     ));
-  };
+  }, [selectedInvoice]);
 
-  const ServiceItemModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg overflow-y-auto max-h-[90vh]">
-        <h2 className="text-xl font-bold mb-4">Add Service Item</h2>
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); addServiceItem(); }}>
-          {Object.keys(serviceItemForm).map((field) => (
-            <div key={field} className="flex flex-col">
-              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
-              <input
-                name={field}
-                value={serviceItemForm[field]}
-                onChange={handleServiceItemInput}
-                className="border rounded p-2"
-                type={field.includes('date') ? 'date' : 'text'}
-                required={field !== 'keves_merge_vendors' && field !== 'nepl_months'}
-              />
-            </div>
-          ))}
-          <div className="col-span-2 flex gap-2 justify-end mt-4">
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowServiceItemModal(false)}>Cancel</button>
-            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Add Service Item</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+  const deleteInvoice = useCallback((id) => {
+    setInvoices(prev => prev.filter(inv => inv.id !== id));
+  }, []);
 
-  // Invoice CRUD actions
-  const deleteInvoice = (id) => setInvoices(prev => prev.filter(inv => inv.id !== id));
-  const openEditInvoice = (invoice) => {
-    setSelectedInvoice(invoice);
-    setInvoiceForm({ ...invoice });
-    setShowEditInvoiceModal(true);
-  };
-  const openViewInvoice = (invoice) => { setSelectedInvoice(invoice); setShowViewInvoiceModal(true); };
-  const openServiceItemModal = (invoice) => {
-    setSelectedInvoice(invoice);
-    setServiceItemForm({
-      invoice_id: invoice.id,
-      item_code: "",
-      description: "",
-      vehicle_no: "",
-      days_worked: "",
-      no_of_persons: "",
-      quantity: "",
-      total_qty: "",
-      day_rate: "",
-      keves_merge_vendors: "",
-      total_amount: "",
-      service_category_id: "",
-      unit: "",
-      rate: "",
-      invoice_item_class: "",
-      location_id: "",
-      uom: "",
-      nepl_months: "",
-      days_to: "",
-      days_from: ""
-    });
-    setShowServiceItemModal(true);
-  };
-
-  // Main render
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -503,12 +346,49 @@ export function AccountsDashboard() {
           </table>
         </div>
       </div>
-      {/* Modals */}
-      {showInvoiceModal && <InvoiceModal />}
-      {showEditInvoiceModal && <EditInvoiceModal />}
-      {showViewInvoiceModal && <ViewInvoiceModal />}
-      {showServiceItemModal && <ServiceItemModal />}
-    {showEditServiceItemModal && <EditServiceItemModal />}
+
+      {/* Invoice Modal */}
+      <InvoiceModal
+        isOpen={showInvoiceModal}
+        onClose={() => setShowInvoiceModal(false)}
+        form={invoiceForm}
+        onChange={handleInvoiceInput}
+        onSubmit={addInvoice}
+      />
+
+      {/* Edit Invoice Modal */}
+      <EditInvoiceModal
+        isOpen={showEditInvoiceModal}
+        onClose={() => setShowEditInvoiceModal(false)}
+        form={invoiceForm}
+        onChange={handleInvoiceInput}
+      />
+
+      {/* View Invoice Modal */}
+      <ViewInvoiceModal
+        isOpen={showViewInvoiceModal}
+        onClose={() => setShowViewInvoiceModal(false)}
+        invoice={selectedInvoice}
+      />
+
+      {/* Service Item Modal */}
+      <ServiceItemModal
+        isOpen={showServiceItemModal}
+        onClose={() => setShowServiceItemModal(false)}
+        form={serviceItemForm}
+        onChange={handleServiceItemInput}
+        onSubmit={addServiceItem}
+      />
+
+      {/* Edit Service Item Modal */}
+      <EditServiceItemModal
+        isOpen={showEditServiceItemModal}
+        onClose={() => setShowEditServiceItemModal(false)}
+        item={editServiceItem}
+        onChange={handleEditServiceItemInput}
+        onSave={saveEditServiceItem}
+      />
+
       {/* Service Items Table for selected invoice */}
       {selectedInvoice && selectedInvoice.service_items && selectedInvoice.service_items.length > 0 && (
         <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
@@ -550,6 +430,189 @@ export function AccountsDashboard() {
   );
 }
 
+// InvoiceModal Component
+const InvoiceModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
+        <h2 className="text-xl font-bold mb-4">Create Invoice</h2>
+        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
+          {Object.keys(form).filter(f => f !== 'service_items').map((field, index) => (
+            <div key={field} className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
+              <input
+                name={field}
+                value={form[field]}
+                onChange={onChange}
+                className="border rounded p-2"
+                type={field.includes('date') ? 'date' : 'text'}
+                required={field !== 'management_fees' && field !== 'transport_fees'}
+                autoFocus={index === 0}
+              />
+            </div>
+          ))}
+          <div className="col-span-2 flex gap-2 justify-end mt-4">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Create Invoice</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// EditInvoiceModal Component
+const EditInvoiceModal = ({ isOpen, onClose, form, onChange }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
+        <h2 className="text-xl font-bold mb-4">Edit Invoice</h2>
+        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); onClose(); }}>
+          {Object.keys(form).filter(f => f !== 'service_items').map((field, index) => (
+            <div key={field} className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
+              <input
+                name={field}
+                value={form[field]}
+                onChange={onChange}
+                className="border rounded p-2"
+                type={field.includes('date') ? 'date' : 'text'}
+                required={true}
+                autoComplete="off"
+                autoFocus={index === 0}
+              />
+            </div>
+          ))}
+          <div className="col-span-2 flex gap-2 justify-end mt-4">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ViewInvoiceModal Component
+const ViewInvoiceModal = ({ isOpen, onClose, invoice }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
+        <h2 className="text-xl font-bold mb-4">Invoice Details</h2>
+        {invoice && (
+          <div id="print-invoice">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {Object.keys(invoice).filter(f => f !== 'service_items').map((field) => (
+                <div key={field} className="flex flex-col">
+                  <span className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</span>
+                  <span className="text-gray-900">{invoice[field]}</span>
+                </div>
+              ))}
+            </div>
+            <h3 className="text-lg font-bold mb-2">Service Items</h3>
+            <table className="min-w-full text-left mb-4">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="p-2">Item Code</th>
+                  <th className="p-2">Description</th>
+                  <th className="p-2">Quantity</th>
+                  <th className="p-2">Day Rate</th>
+                  <th className="p-2">Total Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoice.service_items && invoice.service_items.map(item => (
+                  <tr key={item.id} className="border-b">
+                    <td className="p-2 font-mono">{item.item_code}</td>
+                    <td className="p-2">{item.description}</td>
+                    <td className="p-2">{item.quantity}</td>
+                    <td className="p-2">{item.day_rate}</td>
+                    <td className="p-2">${item.total_amount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="flex flex-col gap-2 mb-4">
+              <div className="flex justify-between"><span className="font-semibold">Subtotal:</span> <span>${invoice.service_items ? invoice.service_items.reduce((sum, item) => sum + Number(item.total_amount || 0), 0) : 0}</span></div>
+              <div className="flex justify-between"><span className="font-semibold">VAT (7.5%):</span> <span>${invoice.service_items ? (invoice.service_items.reduce((sum, item) => sum + Number(item.total_amount || 0), 0) * 0.075).toFixed(2) : 0}</span></div>
+              <div className="flex justify-between"><span className="font-semibold">Grand Total:</span> <span>${invoice.service_items ? (invoice.service_items.reduce((sum, item) => sum + Number(item.total_amount || 0), 0) * 1.075).toFixed(2) : 0}</span></div>
+            </div>
+            <button className="bg-blue-600 text-white px-4 py-2 rounded mb-2" onClick={() => window.print()}>Print Invoice</button>
+          </div>
+        )}
+        <button className="mt-4 bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+};
+
+// ServiceItemModal Component
+const ServiceItemModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg overflow-y-auto max-h-[90vh]">
+        <h2 className="text-xl font-bold mb-4">Add Service Item</h2>
+        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
+          {Object.keys(form).map((field, index) => (
+            <div key={field} className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
+              <input
+                name={field}
+                value={form[field]}
+                onChange={onChange}
+                className="border rounded p-2"
+                type={field.includes('date') ? 'date' : 'text'}
+                required={field !== 'keves_merge_vendors' && field !== 'nepl_months'}
+                autoFocus={index === 0}
+              />
+            </div>
+          ))}
+          <div className="col-span-2 flex gap-2 justify-end mt-4">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Add Service Item</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// EditServiceItemModal Component
+const EditServiceItemModal = ({ isOpen, onClose, item, onChange, onSave }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg overflow-y-auto max-h-[90vh]">
+        <h2 className="text-xl font-bold mb-4">Edit Service Item</h2>
+        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); onSave(); }}>
+          {item && Object.keys(item).map((field, index) => (
+            <div key={field} className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
+              <input
+                name={field}
+                value={item[field]}
+                onChange={onChange}
+                className="border rounded p-2"
+                type={field.includes('date') ? 'date' : 'text'}
+                required={field !== 'keves_merge_vendors' && field !== 'nepl_months'}
+                autoFocus={index === 0}
+              />
+            </div>
+          ))}
+          <div className="col-span-2 flex gap-2 justify-end mt-4">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 export function OperationsDashboard() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -576,18 +639,14 @@ export function QHSSDashboard() {
       <Card title="Incidents" value={2} icon={Shield} />
       <Card title="Access Requests" value={11} icon={Calendar} color="bg-yellow-100" />
       <Card title="Permits" value={6} icon={Receipt} color="bg-blue-100" />
-      <Card title="Fitness to Work" value={6} icon={Check} color="bg-seondary" />
+      <Card title="Fitness to Work" value={6} icon={Check} color="bg-secondary" />
       <Card title="Document Control" value={6} icon={FileArchive} color="bg-green-100" />
-      <Card title="ISO AUDIT REPORT" value={6} icon={FileBarChart} color="bg-seondary" />
+      <Card title="ISO AUDIT REPORT" value={6} icon={FileBarChart} color="bg-secondary" />
     </div>
   );
 }
 
-
-
-
 export function ProjectDashboard() {
-  // Mock data
   const [projects, setProjects] = useState([
     {
       id: 1,
@@ -682,9 +741,10 @@ export function ProjectDashboard() {
     }
   ]);
 
-  // Modal state
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [showEditProjectModal, setShowEditProjectModal] = useState(false);
+  const [showActivityModal, setShowActivityModal] = useState(false);
+  const [viewActivitiesProject, setViewActivitiesProject] = useState(null);
   const [editProjectId, setEditProjectId] = useState(null);
   const [editProject, setEditProject] = useState({
     code: "",
@@ -700,7 +760,78 @@ export function ProjectDashboard() {
     progress: 0,
     activities: []
   });
-  const openEditProjectModal = (project) => {
+  const [newProject, setNewProject] = useState({
+    code: "",
+    name: "",
+    description: "",
+    client: "",
+    site: "",
+    startDate: "",
+    endDate: "",
+    cost: "",
+    revenue: "",
+    status: "Pending",
+    progress: 0,
+    activities: []
+  });
+  const [newActivity, setNewActivity] = useState({
+    code: "",
+    name: "",
+    assignee: "",
+    assigner: "",
+    startDate: "",
+    endDate: "",
+    progress: 0,
+    status: "Pending"
+  });
+  const [activityProjectId, setActivityProjectId] = useState(null);
+
+  const handleProjectInput = useCallback((e) => {
+    const { name, value } = e.target;
+    setNewProject((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  const handleEditProjectInput = useCallback((e) => {
+    const { name, value } = e.target;
+    setEditProject((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  const handleActivityInput = useCallback((e) => {
+    const { name, value } = e.target;
+    setNewActivity((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  const addProject = useCallback(() => {
+    if (!newProject.code || !newProject.name || !newProject.client || !newProject.site || !newProject.startDate || !newProject.endDate || !newProject.cost || !newProject.revenue) return;
+    setProjects(prev => [
+      ...prev,
+      {
+        ...newProject,
+        id: Date.now(),
+        cost: Number(newProject.cost),
+        revenue: Number(newProject.revenue),
+        progress: 0,
+        activities: []
+      }
+    ]);
+    setNewProject({
+      code: "",
+      name: "",
+      description: "",
+      client: "",
+      site: "",
+      startDate: "",
+      endDate: "",
+      cost: "",
+      revenue: "",
+      status: "Pending",
+      progress: 0,
+      activities: []
+    });
+    setShowProjectModal(false);
+  }, [newProject]);
+
+  const openEditProjectModal = useCallback((project) => {
     setEditProjectId(project.id);
     setEditProject({
       code: project.code,
@@ -717,14 +848,9 @@ export function ProjectDashboard() {
       activities: project.activities || []
     });
     setShowEditProjectModal(true);
-  };
+  }, []);
 
-  const handleEditProjectInput = (e) => {
-    const { name, value } = e.target;
-    setEditProject((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const saveEditProject = () => {
+  const saveEditProject = useCallback(() => {
     setProjects(projects => projects.map(p =>
       p.id === editProjectId
         ? {
@@ -736,155 +862,11 @@ export function ProjectDashboard() {
           }
         : p
     ));
-    setTimeout(() => {
-      setShowEditProjectModal(false);
-      setEditProjectId(null);
-    }, 100);
-  };
-  const EditProjectModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
-        <h2 className="text-xl font-bold mb-4">Edit Project</h2>
-        <form className="space-y-3" onSubmit={e => { e.preventDefault(); saveEditProject(); }}>
-          <input name="code" value={editProject.code} onChange={handleEditProjectInput} className="border rounded p-2 w-full" placeholder="Project Code" required />
-          <input name="name" value={editProject.name} onChange={handleEditProjectInput} className="border rounded p-2 w-full" placeholder="Project Name" required />
-          <textarea name="description" value={editProject.description} onChange={handleEditProjectInput} className="border rounded p-2 w-full" placeholder="Description" rows={2} />
-          <input name="client" value={editProject.client} onChange={handleEditProjectInput} className="border rounded p-2 w-full" placeholder="Client" required />
-          <input name="site" value={editProject.site} onChange={handleEditProjectInput} className="border rounded p-2 w-full" placeholder="Site" required />
-          <div className="flex gap-2">
-            <input name="startDate" value={editProject.startDate} onChange={handleEditProjectInput} className="border rounded p-2 w-full" type="date" placeholder="Start Date" required />
-            <input name="endDate" value={editProject.endDate} onChange={handleEditProjectInput} className="border rounded p-2 w-full" type="date" placeholder="End Date" required />
-          </div>
-          <div className="flex gap-2">
-            <input name="cost" value={editProject.cost} onChange={handleEditProjectInput} className="border rounded p-2 w-full" type="number" placeholder="Cost" required />
-            <input name="revenue" value={editProject.revenue} onChange={handleEditProjectInput} className="border rounded p-2 w-full" type="number" placeholder="Revenue" required />
-          </div>
-          <select name="status" value={editProject.status} onChange={handleEditProjectInput} className="border rounded p-2 w-full">
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-          </select>
-          <input name="progress" value={editProject.progress} onChange={handleEditProjectInput} className="border rounded p-2 w-full" type="number" min="0" max="100" placeholder="Progress (%)" />
-          <div className="flex gap-2 justify-end">
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => { setShowEditProjectModal(false); setEditProjectId(null); }}>Cancel</button>
-            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-  const [newProject, setNewProject] = useState({
-    code: "",
-    name: "",
-    description: "",
-    client: "",
-    site: "",
-    startDate: "",
-    endDate: "",
-    cost: "",
-    revenue: "",
-    status: "Pending",
-    progress: 0,
-    activities: []
-  });
-  const [showActivityModal, setShowActivityModal] = useState(false);
-  const [viewActivitiesProject, setViewActivitiesProject] = useState(null);
-  const [viewActivity, setViewActivity] = useState(null);
-  const [activityProjectId, setActivityProjectId] = useState(null);
-  const [newActivity, setNewActivity] = useState({
-    code: "",
-    name: "",
-    assignee: "",
-    assigner: "",
-    startDate: "",
-    endDate: "",
-    progress: 0,
-    status: "Pending"
-  });
+    setShowEditProjectModal(false);
+    setEditProjectId(null);
+  }, [editProject, editProjectId]);
 
-  // Cards summary
-  const totalCost = projects.reduce((sum, p) => sum + p.cost, 0);
-  const avgProgress = projects.length ? Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length) : 0;
-  const totalRevenue = projects.reduce((sum, p) => sum + (p.revenue || 0), 0);
-
-  // Modal skeletons (to be styled and implemented)
-  const handleProjectInput = (e) => {
-    const { name, value } = e.target;
-    setNewProject((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const addProject = () => {
-    // Validate required fields
-    if (!newProject.code || !newProject.name || !newProject.client || !newProject.site || !newProject.startDate || !newProject.endDate || !newProject.cost || !newProject.revenue) return;
-    setProjects(prev => [
-      ...prev,
-      {
-        ...newProject,
-        id: Date.now(),
-        cost: Number(newProject.cost),
-        revenue: Number(newProject.revenue),
-        progress: 0,
-        activities: []
-      }
-    ]);
-    // Reset form after a short delay to avoid input blur/disabling
-    setTimeout(() => {
-      setNewProject({
-        code: "",
-        name: "",
-        description: "",
-        client: "",
-        site: "",
-        startDate: "",
-        endDate: "",
-        cost: "",
-        revenue: "",
-        status: "Pending",
-        progress: 0,
-        activities: []
-      });
-      setShowProjectModal(false);
-    }, 100);
-  };
-
-  const ProjectModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
-        <h2 className="text-xl font-bold mb-4">Add New Project</h2>
-        <form className="space-y-3" onSubmit={e => { e.preventDefault(); addProject(); }}>
-          <input name="code" value={newProject.code} onChange={handleProjectInput} className="border rounded p-2 w-full" placeholder="Project Code" required />
-          <input name="name" value={newProject.name} onChange={handleProjectInput} className="border rounded p-2 w-full" placeholder="Project Name" required />
-          <textarea name="description" value={newProject.description} onChange={handleProjectInput} className="border rounded p-2 w-full" placeholder="Description" rows={2} />
-          <input name="client" value={newProject.client} onChange={handleProjectInput} className="border rounded p-2 w-full" placeholder="Client" required />
-          <input name="site" value={newProject.site} onChange={handleProjectInput} className="border rounded p-2 w-full" placeholder="Site" required />
-          <div className="flex gap-2">
-            <input name="startDate" value={newProject.startDate} onChange={handleProjectInput} className="border rounded p-2 w-full" type="date" placeholder="Start Date" required />
-            <input name="endDate" value={newProject.endDate} onChange={handleProjectInput} className="border rounded p-2 w-full" type="date" placeholder="End Date" required />
-          </div>
-          <div className="flex gap-2">
-            <input name="cost" value={newProject.cost} onChange={handleProjectInput} className="border rounded p-2 w-full" type="number" placeholder="Cost" required />
-            <input name="revenue" value={newProject.revenue} onChange={handleProjectInput} className="border rounded p-2 w-full" type="number" placeholder="Revenue" required />
-          </div>
-          <select name="status" value={newProject.status} onChange={handleProjectInput} className="border rounded p-2 w-full">
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-          </select>
-          <div className="flex gap-2 justify-end">
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowProjectModal(false)}>Cancel</button>
-            <button type="submit" className="bg-red-600 text-white px-4 py-2 rounded">Add Project</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-
-  const handleActivityInput = (e) => {
-    const { name, value } = e.target;
-    setNewActivity((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const addActivity = () => {
+  const addActivity = useCallback(() => {
     if (!activityProjectId) return;
     if (!newActivity.code || !newActivity.name || !newActivity.assignee || !newActivity.assigner || !newActivity.startDate || !newActivity.endDate) return;
     setProjects(projects => projects.map(p =>
@@ -902,100 +884,24 @@ export function ProjectDashboard() {
           }
         : p
     ));
-    setTimeout(() => {
-      setNewActivity({
-        code: "",
-        name: "",
-        assignee: "",
-        assigner: "",
-        startDate: "",
-        endDate: "",
-        progress: 0,
-        status: "Pending"
-      });
-      setShowActivityModal(false);
-      setActivityProjectId(null);
-    }, 100);
-  };
+    setNewActivity({
+      code: "",
+      name: "",
+      assignee: "",
+      assigner: "",
+      startDate: "",
+      endDate: "",
+      progress: 0,
+      status: "Pending"
+    });
+    setShowActivityModal(false);
+    setActivityProjectId(null);
+  }, [newActivity, activityProjectId]);
 
-  const ActivityModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
-        <h2 className="text-xl font-bold mb-4">Add New Activity</h2>
-        <form className="space-y-3" onSubmit={e => { e.preventDefault(); addActivity(); }}>
-          <input name="code" value={newActivity.code} onChange={handleActivityInput} className="border rounded p-2 w-full" placeholder="Activity Code" required />
-          <input name="name" value={newActivity.name} onChange={handleActivityInput} className="border rounded p-2 w-full" placeholder="Activity Name" required />
-          <input name="assignee" value={newActivity.assignee} onChange={handleActivityInput} className="border rounded p-2 w-full" placeholder="Assignee" required />
-          <input name="assigner" value={newActivity.assigner} onChange={handleActivityInput} className="border rounded p-2 w-full" placeholder="Assigner" required />
-          <div className="flex gap-2">
-            <input name="startDate" value={newActivity.startDate} onChange={handleActivityInput} className="border rounded p-2 w-full" type="date" placeholder="Start Date" required />
-            <input name="endDate" value={newActivity.endDate} onChange={handleActivityInput} className="border rounded p-2 w-full" type="date" placeholder="End Date" required />
-          </div>
-          <div className="flex gap-2">
-            <input name="progress" value={newActivity.progress} onChange={handleActivityInput} className="border rounded p-2 w-full" type="number" min="0" max="100" placeholder="Progress (%)" />
-            <select name="status" value={newActivity.status} onChange={handleActivityInput} className="border rounded p-2 w-full">
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
-          <div className="flex gap-2 justify-end">
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => { setShowActivityModal(false); setActivityProjectId(null); }}>Cancel</button>
-            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Add Activity</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+  const totalCost = projects.reduce((sum, p) => sum + p.cost, 0);
+  const avgProgress = projects.length ? Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length) : 0;
+  const totalRevenue = projects.reduce((sum, p) => sum + (p.revenue || 0), 0);
 
-  const ViewActivitiesModal = ({ project }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl">
-        <h2 className="text-xl font-bold mb-4">Project Activities - {project.name}</h2>
-        <table className="min-w-full text-left mb-4">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-2">Code</th>
-              <th className="p-2">Name</th>
-              <th className="p-2">Assignee</th>
-              <th className="p-2">Assigner</th>
-              <th className="p-2">Start Date</th>
-              <th className="p-2">End Date</th>
-              <th className="p-2">Progress</th>
-              <th className="p-2">Status</th>
-              <th className="p-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {project.activities.map(act => (
-              <tr key={act.id}>
-                <td className="p-2 font-mono">{act.code}</td>
-                <td className="p-2">{act.name}</td>
-                <td className="p-2">{act.assignee}</td>
-                <td className="p-2">{act.assigner}</td>
-                <td className="p-2">{act.startDate}</td>
-                <td className="p-2">{act.endDate}</td>
-                <td className="p-2">
-                  <span className={`px-2 py-1 rounded text-xs font-bold ${act.progress === 100 ? 'bg-green-200 text-green-800' : act.progress > 0 ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-800'}`}>{act.progress}%</span>
-                </td>
-                <td className="p-2">
-                  <span className={`px-2 py-1 rounded text-xs font-bold ${act.status === 'Completed' ? 'bg-green-200 text-green-800' : act.status === 'In Progress' ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-800'}`}>{act.status}</span>
-                </td>
-                <td className="p-2 flex gap-1">
-                  <button className="bg-blue-500 text-white px-2 py-1 rounded text-xs">Edit</button>
-                  <button className="bg-red-600 text-white px-2 py-1 rounded text-xs">Delete</button>
-                  <button className="bg-gray-400 text-white px-2 py-1 rounded text-xs">Print</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <button className="mt-4 bg-gray-300 px-4 py-2 rounded" onClick={() => setViewActivitiesProject(null)}>Close</button>
-      </div>
-    </div>
-  );
-
-  // Main render
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -1004,7 +910,6 @@ export function ProjectDashboard() {
         <Card title="Total Cost" value={`$${totalCost}`} icon={Banknote} color="bg-green-100" />
         <Card title="Total Revenue" value={`$${totalRevenue}`} icon={Banknote} color="bg-yellow-100" />
       </div>
-
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Projects</h2>
@@ -1059,14 +964,11 @@ export function ProjectDashboard() {
           </table>
         </div>
       </div>
-
-
       <div className="bg-white rounded-xl shadow-lg p-8 mt-8">
         <h2 className="text-2xl font-extrabold mb-6 text-gray-900 flex items-center gap-2">
           <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m14-6V7a4 4 0 00-4-4H7a4 4 0 00-4 4v4m16 6v-2a4 4 0 00-4-4h-1a4 4 0 00-4 4v2" /></svg>
           Project Reports
         </h2>
-        {/* Summary Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-blue-50 rounded-lg p-4 flex flex-col items-center">
             <span className="text-3xl font-bold text-blue-600">{projects.length}</span>
@@ -1105,7 +1007,6 @@ export function ProjectDashboard() {
               <div className="mt-2 text-gray-700">
                 <span className="font-semibold">Description:</span> <span className="text-gray-900">{p.description}</span>
               </div>
-              {/* Visual cues for progress */}
               <div className="mt-4">
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div className={`h-3 rounded-full ${p.progress === 100 ? 'bg-green-500' : p.progress > 0 ? 'bg-yellow-400' : 'bg-gray-400'}`} style={{ width: `${p.progress}%` }}></div>
@@ -1120,11 +1021,197 @@ export function ProjectDashboard() {
         </div>
       </div>
 
-      {/* Modals */}
-  {showProjectModal && <ProjectModal />}
-  {showEditProjectModal && <EditProjectModal />}
-  {showActivityModal && <ActivityModal />}
-  {viewActivitiesProject && <ViewActivitiesModal project={viewActivitiesProject} />}
+      {/* Project Modal */}
+      <ProjectModal
+        isOpen={showProjectModal}
+        onClose={() => setShowProjectModal(false)}
+        form={newProject}
+        onChange={handleProjectInput}
+        onSubmit={addProject}
+      />
+
+      {/* Edit Project Modal */}
+      <EditProjectModal
+        isOpen={showEditProjectModal}
+        onClose={() => setShowEditProjectModal(false)}
+        form={editProject}
+        onChange={handleEditProjectInput}
+        onSubmit={saveEditProject}
+      />
+
+      {/* Activity Modal */}
+      <ActivityModal
+        isOpen={showActivityModal}
+        onClose={() => setShowActivityModal(false)}
+        form={newActivity}
+        onChange={handleActivityInput}
+        onSubmit={addActivity}
+      />
+
+      {/* View Activities Modal */}
+      {viewActivitiesProject && (
+        <ViewActivitiesModal
+          project={viewActivitiesProject}
+          onClose={() => setViewActivitiesProject(null)}
+        />
+      )}
     </div>
   );
 }
+
+// ProjectModal Component
+const ProjectModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
+        <h2 className="text-xl font-bold mb-4">Add New Project</h2>
+        <form className="space-y-3" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
+          <input name="code" value={form.code} onChange={onChange} className="border rounded p-2 w-full" placeholder="Project Code" required autoFocus />
+          <input name="name" value={form.name} onChange={onChange} className="border rounded p-2 w-full" placeholder="Project Name" required />
+          <textarea name="description" value={form.description} onChange={onChange} className="border rounded p-2 w-full" placeholder="Description" rows={2} />
+          <input name="client" value={form.client} onChange={onChange} className="border rounded p-2 w-full" placeholder="Client" required />
+          <input name="site" value={form.site} onChange={onChange} className="border rounded p-2 w-full" placeholder="Site" required />
+          <div className="flex gap-2">
+            <input name="startDate" value={form.startDate} onChange={onChange} className="border rounded p-2 w-full" type="date" placeholder="Start Date" required />
+            <input name="endDate" value={form.endDate} onChange={onChange} className="border rounded p-2 w-full" type="date" placeholder="End Date" required />
+          </div>
+          <div className="flex gap-2">
+            <input name="cost" value={form.cost} onChange={onChange} className="border rounded p-2 w-full" type="number" placeholder="Cost" required />
+            <input name="revenue" value={form.revenue} onChange={onChange} className="border rounded p-2 w-full" type="number" placeholder="Revenue" required />
+          </div>
+          <select name="status" value={form.status} onChange={onChange} className="border rounded p-2 w-full">
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+          <div className="flex gap-2 justify-end">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
+            <button type="submit" className="bg-red-600 text-white px-4 py-2 rounded">Add Project</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// EditProjectModal Component
+const EditProjectModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
+        <h2 className="text-xl font-bold mb-4">Edit Project</h2>
+        <form className="space-y-3" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
+          <input name="code" value={form.code} onChange={onChange} className="border rounded p-2 w-full" placeholder="Project Code" required autoFocus />
+          <input name="name" value={form.name} onChange={onChange} className="border rounded p-2 w-full" placeholder="Project Name" required />
+          <textarea name="description" value={form.description} onChange={onChange} className="border rounded p-2 w-full" placeholder="Description" rows={2} />
+          <input name="client" value={form.client} onChange={onChange} className="border rounded p-2 w-full" placeholder="Client" required />
+          <input name="site" value={form.site} onChange={onChange} className="border rounded p-2 w-full" placeholder="Site" required />
+          <div className="flex gap-2">
+            <input name="startDate" value={form.startDate} onChange={onChange} className="border rounded p-2 w-full" type="date" placeholder="Start Date" required />
+            <input name="endDate" value={form.endDate} onChange={onChange} className="border rounded p-2 w-full" type="date" placeholder="End Date" required />
+          </div>
+          <div className="flex gap-2">
+            <input name="cost" value={form.cost} onChange={onChange} className="border rounded p-2 w-full" type="number" placeholder="Cost" required />
+            <input name="revenue" value={form.revenue} onChange={onChange} className="border rounded p-2 w-full" type="number" placeholder="Revenue" required />
+          </div>
+          <select name="status" value={form.status} onChange={onChange} className="border rounded p-2 w-full">
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+          <input name="progress" value={form.progress} onChange={onChange} className="border rounded p-2 w-full" type="number" min="0" max="100" placeholder="Progress (%)" />
+          <div className="flex gap-2 justify-end">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ActivityModal Component
+const ActivityModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
+        <h2 className="text-xl font-bold mb-4">Add New Activity</h2>
+        <form className="space-y-3" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
+          <input name="code" value={form.code} onChange={onChange} className="border rounded p-2 w-full" placeholder="Activity Code" required autoFocus />
+          <input name="name" value={form.name} onChange={onChange} className="border rounded p-2 w-full" placeholder="Activity Name" required />
+          <input name="assignee" value={form.assignee} onChange={onChange} className="border rounded p-2 w-full" placeholder="Assignee" required />
+          <input name="assigner" value={form.assigner} onChange={onChange} className="border rounded p-2 w-full" placeholder="Assigner" required />
+          <div className="flex gap-2">
+            <input name="startDate" value={form.startDate} onChange={onChange} className="border rounded p-2 w-full" type="date" placeholder="Start Date" required />
+            <input name="endDate" value={form.endDate} onChange={onChange} className="border rounded p-2 w-full" type="date" placeholder="End Date" required />
+          </div>
+          <div className="flex gap-2">
+            <input name="progress" value={form.progress} onChange={onChange} className="border rounded p-2 w-full" type="number" min="0" max="100" placeholder="Progress (%)" />
+            <select name="status" value={form.status} onChange={onChange} className="border rounded p-2 w-full">
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Add Activity</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ViewActivitiesModal Component
+const ViewActivitiesModal = ({ project, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl">
+        <h2 className="text-xl font-bold mb-4">Project Activities - {project.name}</h2>
+        <table className="min-w-full text-left mb-4">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="p-2">Code</th>
+              <th className="p-2">Name</th>
+              <th className="p-2">Assignee</th>
+              <th className="p-2">Assigner</th>
+              <th className="p-2">Start Date</th>
+              <th className="p-2">End Date</th>
+              <th className="p-2">Progress</th>
+              <th className="p-2">Status</th>
+              <th className="p-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {project.activities.map(act => (
+              <tr key={act.id}>
+                <td className="p-2 font-mono">{act.code}</td>
+                <td className="p-2">{act.name}</td>
+                <td className="p-2">{act.assignee}</td>
+                <td className="p-2">{act.assigner}</td>
+                <td className="p-2">{act.startDate}</td>
+                <td className="p-2">{act.endDate}</td>
+                <td className="p-2">
+                  <span className={`px-2 py-1 rounded text-xs font-bold ${act.progress === 100 ? 'bg-green-200 text-green-800' : act.progress > 0 ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-800'}`}>{act.progress}%</span>
+                </td>
+                <td className="p-2">
+                  <span className={`px-2 py-1 rounded text-xs font-bold ${act.status === 'Completed' ? 'bg-green-200 text-green-800' : act.status === 'In Progress' ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-800'}`}>{act.status}</span>
+                </td>
+                <td className="p-2 flex gap-1">
+                  <button className="bg-blue-500 text-white px-2 py-1 rounded text-xs">Edit</button>
+                  <button className="bg-red-600 text-white px-2 py-1 rounded text-xs">Delete</button>
+                  <button className="bg-gray-400 text-white px-2 py-1 rounded text-xs">Print</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button className="mt-4 bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+};

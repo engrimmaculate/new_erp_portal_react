@@ -34,6 +34,65 @@ export function LogisticsDashboard() {
 }
 
 export function AccountsDashboard() {
+  // Service Item Edit Modal
+  const [showEditServiceItemModal, setShowEditServiceItemModal] = useState(false);
+  const [editServiceItem, setEditServiceItem] = useState(null);
+
+  const openEditServiceItemModal = (item) => {
+    setEditServiceItem(item);
+    setShowEditServiceItemModal(true);
+  };
+
+  const handleEditServiceItemInput = (e) => {
+    const { name, value } = e.target;
+    setEditServiceItem((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const saveEditServiceItem = () => {
+    if (!selectedInvoice || !editServiceItem) return;
+    setInvoices(prev => prev.map(inv =>
+      inv.id === selectedInvoice.id
+        ? {
+            ...inv,
+            service_items: inv.service_items.map(item =>
+              item.id === editServiceItem.id ? { ...editServiceItem, total_amount: Number(editServiceItem.total_amount || 0) } : item
+            ),
+            amount: inv.service_items.map(item =>
+              item.id === editServiceItem.id ? Number(editServiceItem.total_amount || 0) : Number(item.total_amount || 0)
+            ).reduce((sum, amt) => sum + amt, 0)
+          }
+        : inv
+    ));
+    setShowEditServiceItemModal(false);
+    setEditServiceItem(null);
+  };
+
+  const EditServiceItemModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg overflow-y-auto max-h-[90vh]">
+        <h2 className="text-xl font-bold mb-4">Edit Service Item</h2>
+        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); saveEditServiceItem(); }}>
+          {editServiceItem && Object.keys(editServiceItem).map((field) => (
+            <div key={field} className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
+              <input
+                name={field}
+                value={editServiceItem[field]}
+                onChange={handleEditServiceItemInput}
+                className="border rounded p-2"
+                type={field.includes('date') ? 'date' : 'text'}
+                required={field !== 'keves_merge_vendors' && field !== 'nepl_months'}
+              />
+            </div>
+          ))}
+          <div className="col-span-2 flex gap-2 justify-end mt-4">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowEditServiceItemModal(false)}>Cancel</button>
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
   // Invoice state
   const [invoices, setInvoices] = useState([]);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -84,7 +143,6 @@ export function AccountsDashboard() {
     transport_fees: "",
     service_items: []
   });
-
   // Service Item modal state
   const [showServiceItemModal, setShowServiceItemModal] = useState(false);
   const [serviceItemForm, setServiceItemForm] = useState({
@@ -388,6 +446,7 @@ export function AccountsDashboard() {
       {showEditInvoiceModal && <EditInvoiceModal />}
       {showViewInvoiceModal && <ViewInvoiceModal />}
       {showServiceItemModal && <ServiceItemModal />}
+    {showEditServiceItemModal && <EditServiceItemModal />}
       {/* Service Items Table for selected invoice */}
       {selectedInvoice && selectedInvoice.service_items && selectedInvoice.service_items.length > 0 && (
         <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
@@ -416,7 +475,7 @@ export function AccountsDashboard() {
                   <td className="p-2">{item.day_rate}</td>
                   <td className="p-2">${item.total_amount}</td>
                   <td className="p-2 flex gap-1">
-                    {/* TODO: Add edit modal for service item */}
+                    <button className="bg-blue-500 text-white px-2 py-1 rounded text-xs" onClick={() => openEditServiceItemModal(item)}>Edit</button>
                     <button className="bg-red-600 text-white px-2 py-1 rounded text-xs" onClick={() => deleteServiceItem(item.id)}>Delete</button>
                   </td>
                 </tr>

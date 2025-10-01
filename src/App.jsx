@@ -37,42 +37,89 @@ function App() {
 
   // Dashboard content per user type
   let dashboardContent = null;
-  switch (user.role) {
-    case 'ict':
-      dashboardContent = <ICTDashboard />;
-      break;
-    case 'hr':
-      dashboardContent = <HRDashboard />;
-      break;
-    case 'logistics':
-      dashboardContent = <LogisticsDashboard />;
-      break;
-    case 'accounts':
-      dashboardContent = <AccountsDashboard />;
-      break;
-    case 'operations':
-      dashboardContent = <OperationsDashboard />;
-      break;
-    case 'business':
-      dashboardContent = <BusinessDashboard />;
-      break;
-    case 'qhsse':
-      dashboardContent = <QHSSDashboard />;
-      break;
-    case 'project':
-      dashboardContent = <ProjectDashboard />;
-      break;
-    default:
-      dashboardContent = (
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-blue-100">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Welcome to Keves ERP
-          </h1>
-          <p className="text-gray-600 text-base md:text-lg">
-            Your enterprise resource planning system with organized navigation and powerful accounting features.
-          </p>
-        </div>
-      );
+  if (user.role === 'admin' || user.role === 'super_admin' || user.role === 'ict') {
+    dashboardContent = (
+      <div className="space-y-10">
+        <section>
+          <h2 className="text-2xl font-bold mb-2 text-red-700">ICT Features</h2>
+          <p className="text-gray-600 mb-4">Manage users, monitor system health, and track pending ICT requests.</p>
+          <ICTDashboard />
+        </section>
+        <section>
+          <h2 className="text-2xl font-bold mb-2 text-blue-700">HR Features</h2>
+          <p className="text-gray-600 mb-4">View employee stats, payroll, and leave requests.</p>
+          <HRDashboard />
+        </section>
+        <section>
+          <h2 className="text-2xl font-bold mb-2 text-green-700">Logistics Features</h2>
+          <p className="text-gray-600 mb-4">Monitor fleet size, active journeys, and fuel usage.</p>
+          <LogisticsDashboard />
+        </section>
+        <section>
+          <h2 className="text-2xl font-bold mb-2 text-purple-700">Accounts Features</h2>
+          <p className="text-gray-600 mb-4">Track invoices, revenue, and vendor management.</p>
+          <AccountsDashboard />
+        </section>
+        <section>
+          <h2 className="text-2xl font-bold mb-2 text-yellow-700">Operations Features</h2>
+          <p className="text-gray-600 mb-4">Manage catering orders, licenses, and vendors.</p>
+          <OperationsDashboard />
+        </section>
+        <section>
+          <h2 className="text-2xl font-bold mb-2 text-pink-700">Business Features</h2>
+          <p className="text-gray-600 mb-4">View business opportunities, clients, and revenue.</p>
+          <BusinessDashboard />
+        </section>
+        <section>
+          <h2 className="text-2xl font-bold mb-2 text-teal-700">QHSSE Features</h2>
+          <p className="text-gray-600 mb-4">Monitor incidents, access requests, and permits.</p>
+          <QHSSDashboard />
+        </section>
+        <section>
+          <h2 className="text-2xl font-bold mb-2 text-gray-700">Project Management Features</h2>
+          <p className="text-gray-600 mb-4">Manage all projects, activities, costs, and reports.</p>
+          <ProjectDashboard />
+        </section>
+      </div>
+    );
+  } else {
+    switch (user.role) {
+      case 'ict':
+        dashboardContent = <ICTDashboard />;
+        break;
+      case 'hr':
+        dashboardContent = <HRDashboard />;
+        break;
+      case 'logistics':
+        dashboardContent = <LogisticsDashboard />;
+        break;
+      case 'accounts':
+        dashboardContent = <AccountsDashboard />;
+        break;
+      case 'operations':
+        dashboardContent = <OperationsDashboard />;
+        break;
+      case 'business':
+        dashboardContent = <BusinessDashboard />;
+        break;
+      case 'qhsse':
+        dashboardContent = <QHSSDashboard />;
+        break;
+      case 'project':
+        dashboardContent = <ProjectDashboard />;
+        break;
+      default:
+        dashboardContent = (
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 border border-blue-100">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+              Welcome to Keves ERP
+            </h1>
+            <p className="text-gray-600 text-base md:text-lg">
+              Your enterprise resource planning system with organized navigation and powerful accounting features.
+            </p>
+          </div>
+        );
+    }
   }
 
   return (

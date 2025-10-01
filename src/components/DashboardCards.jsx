@@ -34,11 +34,397 @@ export function LogisticsDashboard() {
 }
 
 export function AccountsDashboard() {
+  // Invoice state
+  const [invoices, setInvoices] = useState([]);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showEditInvoiceModal, setShowEditInvoiceModal] = useState(false);
+  const [showViewInvoiceModal, setShowViewInvoiceModal] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [invoiceForm, setInvoiceForm] = useState({
+    invoice_no: "",
+    invoice_date: "",
+    vendor_code: "",
+    service_entry_no: "",
+    customer_uniqueid: "",
+    gl_credit_account: "",
+    gl_credit_account_id: "",
+    account_uniqueid: "",
+    gl_debit_account: "",
+    gl_debit_account_id: "",
+    service_location_code: "",
+    vat: "",
+    tin_no: "",
+    po_no: "",
+    focal_person_id: "",
+    service_description_id: "",
+    service_location_id: "",
+    signatory: "",
+    client_id: "",
+    client_bank_account_id: "",
+    client_bank_account_id_2: "",
+    bank_name: "",
+    branch: "",
+    account_name: "",
+    account_no: "",
+    sortcode: "",
+    currency_type: "",
+    status: "Pending",
+    amount: "",
+    user_id: "",
+    invoice_type: "",
+    billed_to: "",
+    invoice_service_code: "",
+    invoice_service_class: "",
+    wcc: "",
+    pay_advice_no: "",
+    service_city: "",
+    service_address: "",
+    management_fees: "",
+    service_state: "",
+    transport_fees: "",
+    service_items: []
+  });
+
+  // Service Item modal state
+  const [showServiceItemModal, setShowServiceItemModal] = useState(false);
+  const [serviceItemForm, setServiceItemForm] = useState({
+    invoice_id: "",
+    item_code: "",
+    description: "",
+    vehicle_no: "",
+    days_worked: "",
+    no_of_persons: "",
+    quantity: "",
+    total_qty: "",
+    day_rate: "",
+    keves_merge_vendors: "",
+    total_amount: "",
+    service_category_id: "",
+    unit: "",
+    rate: "",
+    invoice_item_class: "",
+    location_id: "",
+    uom: "",
+    nepl_months: "",
+    days_to: "",
+    days_from: ""
+  });
+
+  // Modal skeletons (to be implemented)
+  const handleInvoiceInput = (e) => {
+    const { name, value } = e.target;
+    setInvoiceForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const addInvoice = () => {
+    setInvoices(prev => [
+      ...prev,
+      {
+        ...invoiceForm,
+        id: Date.now(),
+        service_items: [],
+      }
+    ]);
+    setInvoiceForm({
+      invoice_no: "",
+      invoice_date: "",
+      vendor_code: "",
+      service_entry_no: "",
+      customer_uniqueid: "",
+      gl_credit_account: "",
+      gl_credit_account_id: "",
+      account_uniqueid: "",
+      gl_debit_account: "",
+      gl_debit_account_id: "",
+      service_location_code: "",
+      vat: "",
+      tin_no: "",
+      po_no: "",
+      focal_person_id: "",
+      service_description_id: "",
+      service_location_id: "",
+      signatory: "",
+      client_id: "",
+      client_bank_account_id: "",
+      client_bank_account_id_2: "",
+      bank_name: "",
+      branch: "",
+      account_name: "",
+      account_no: "",
+      sortcode: "",
+      currency_type: "",
+      status: "Pending",
+      amount: "",
+      user_id: "",
+      invoice_type: "",
+      billed_to: "",
+      invoice_service_code: "",
+      invoice_service_class: "",
+      wcc: "",
+      pay_advice_no: "",
+      service_city: "",
+      service_address: "",
+      management_fees: "",
+      service_state: "",
+      transport_fees: "",
+      service_items: []
+    });
+    setShowInvoiceModal(false);
+  };
+
+  const InvoiceModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
+        <h2 className="text-xl font-bold mb-4">Create Invoice</h2>
+        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); addInvoice(); }}>
+          {Object.keys(invoiceForm).filter(f => f !== 'service_items').map((field) => (
+            <div key={field} className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
+              <input
+                name={field}
+                value={invoiceForm[field]}
+                onChange={handleInvoiceInput}
+                className="border rounded p-2"
+                type={field.includes('date') ? 'date' : 'text'}
+                required={field !== 'management_fees' && field !== 'transport_fees'}
+              />
+            </div>
+          ))}
+          <div className="col-span-2 flex gap-2 justify-end mt-4">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowInvoiceModal(false)}>Cancel</button>
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Create Invoice</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
+  const EditInvoiceModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
+        <h2 className="text-xl font-bold mb-4">Edit Invoice</h2>
+        {/* TODO: Add form fields for editing invoiceForm */}
+        <button className="mt-4 bg-gray-300 px-4 py-2 rounded" onClick={() => setShowEditInvoiceModal(false)}>Close</button>
+      </div>
+    </div>
+  );
+
+  const ViewInvoiceModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
+        <h2 className="text-xl font-bold mb-4">Invoice Details</h2>
+        {/* TODO: Show all invoice details, add print button */}
+        <button className="mt-4 bg-gray-300 px-4 py-2 rounded" onClick={() => setShowViewInvoiceModal(false)}>Close</button>
+      </div>
+    </div>
+  );
+
+  const handleServiceItemInput = (e) => {
+    const { name, value } = e.target;
+    setServiceItemForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const addServiceItem = () => {
+    if (!selectedInvoice) return;
+    const newItem = {
+      ...serviceItemForm,
+      id: Date.now(),
+      total_amount: Number(serviceItemForm.total_amount || 0)
+    };
+    setInvoices(prev => prev.map(inv =>
+      inv.id === selectedInvoice.id
+        ? {
+            ...inv,
+            service_items: [...(inv.service_items || []), newItem],
+            amount: (inv.service_items ? inv.service_items.reduce((sum, item) => sum + Number(item.total_amount || 0), 0) : 0) + newItem.total_amount
+          }
+        : inv
+    ));
+    setServiceItemForm({
+      invoice_id: "",
+      item_code: "",
+      description: "",
+      vehicle_no: "",
+      days_worked: "",
+      no_of_persons: "",
+      quantity: "",
+      total_qty: "",
+      day_rate: "",
+      keves_merge_vendors: "",
+      total_amount: "",
+      service_category_id: "",
+      unit: "",
+      rate: "",
+      invoice_item_class: "",
+      location_id: "",
+      uom: "",
+      nepl_months: "",
+      days_to: "",
+      days_from: ""
+    });
+    setShowServiceItemModal(false);
+  };
+
+  const deleteServiceItem = (itemId) => {
+    if (!selectedInvoice) return;
+    setInvoices(prev => prev.map(inv =>
+      inv.id === selectedInvoice.id
+        ? {
+            ...inv,
+            service_items: inv.service_items.filter(item => item.id !== itemId),
+            amount: inv.service_items.filter(item => item.id !== itemId).reduce((sum, item) => sum + Number(item.total_amount || 0), 0)
+          }
+        : inv
+    ));
+  };
+
+  const ServiceItemModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg overflow-y-auto max-h-[90vh]">
+        <h2 className="text-xl font-bold mb-4">Add Service Item</h2>
+        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); addServiceItem(); }}>
+          {Object.keys(serviceItemForm).map((field) => (
+            <div key={field} className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
+              <input
+                name={field}
+                value={serviceItemForm[field]}
+                onChange={handleServiceItemInput}
+                className="border rounded p-2"
+                type={field.includes('date') ? 'date' : 'text'}
+                required={field !== 'keves_merge_vendors' && field !== 'nepl_months'}
+              />
+            </div>
+          ))}
+          <div className="col-span-2 flex gap-2 justify-end mt-4">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowServiceItemModal(false)}>Cancel</button>
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Add Service Item</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
+  // Invoice CRUD actions
+  const deleteInvoice = (id) => setInvoices(prev => prev.filter(inv => inv.id !== id));
+  const openEditInvoice = (invoice) => { setSelectedInvoice(invoice); setShowEditInvoiceModal(true); };
+  const openViewInvoice = (invoice) => { setSelectedInvoice(invoice); setShowViewInvoiceModal(true); };
+  const openServiceItemModal = (invoice) => {
+    setSelectedInvoice(invoice);
+    setServiceItemForm({
+      invoice_id: invoice.id,
+      item_code: "",
+      description: "",
+      vehicle_no: "",
+      days_worked: "",
+      no_of_persons: "",
+      quantity: "",
+      total_qty: "",
+      day_rate: "",
+      keves_merge_vendors: "",
+      total_amount: "",
+      service_category_id: "",
+      unit: "",
+      rate: "",
+      invoice_item_class: "",
+      location_id: "",
+      uom: "",
+      nepl_months: "",
+      days_to: "",
+      days_from: ""
+    });
+    setShowServiceItemModal(true);
+  };
+
+  // Main render
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <Card title="Invoices" value={32} icon={Receipt} />
-      <Card title="Revenue" value="$120,000" icon={Banknote} color="bg-green-100" />
-      <Card title="Vendors" value={14} icon={UserCheck} color="bg-blue-100" />
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Card title="Invoices" value={invoices.length} icon={Receipt} />
+        <Card title="Revenue" value={`$${invoices.reduce((sum, inv) => sum + Number(inv.amount || 0), 0)}`} icon={Banknote} color="bg-green-100" />
+        <Card title="Vendors" value={14} icon={UserCheck} color="bg-blue-100" />
+      </div>
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Invoices</h2>
+          <button className="bg-green-600 text-white px-4 py-2 rounded" onClick={() => setShowInvoiceModal(true)}>Create Invoice</button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-2">Invoice No</th>
+                <th className="p-2">Date</th>
+                <th className="p-2">Vendor</th>
+                <th className="p-2">Amount</th>
+                <th className="p-2">Status</th>
+                <th className="p-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoices.map(inv => (
+                <tr key={inv.id} className="border-b">
+                  <td className="p-2 font-mono">{inv.invoice_no}</td>
+                  <td className="p-2">{inv.invoice_date}</td>
+                  <td className="p-2">{inv.vendor_code}</td>
+                  <td className="p-2">${inv.amount}</td>
+                  <td className="p-2">
+                    <span className={`px-2 py-1 rounded text-xs font-bold ${inv.status === 'Completed' ? 'bg-green-200 text-green-800' : inv.status === 'Pending' ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-800'}`}>{inv.status}</span>
+                  </td>
+                  <td className="p-2 flex gap-1">
+                    <button className="bg-blue-500 text-white px-2 py-1 rounded text-xs" onClick={() => openEditInvoice(inv)}>Edit</button>
+                    <button className="bg-red-600 text-white px-2 py-1 rounded text-xs" onClick={() => deleteInvoice(inv.id)}>Delete</button>
+                    <button className="bg-gray-400 text-white px-2 py-1 rounded text-xs" onClick={() => openViewInvoice(inv)}>View</button>
+                    <button className="bg-green-500 text-white px-2 py-1 rounded text-xs" onClick={() => openServiceItemModal(inv)}>Add Service Item</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {/* Modals */}
+      {showInvoiceModal && <InvoiceModal />}
+      {showEditInvoiceModal && <EditInvoiceModal />}
+      {showViewInvoiceModal && <ViewInvoiceModal />}
+      {showServiceItemModal && <ServiceItemModal />}
+      {/* Service Items Table for selected invoice */}
+      {selectedInvoice && selectedInvoice.service_items && selectedInvoice.service_items.length > 0 && (
+        <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
+          <h2 className="text-lg font-bold mb-4">Service Items for Invoice {selectedInvoice.invoice_no}</h2>
+          <table className="min-w-full text-left">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-2">Item Code</th>
+                <th className="p-2">Description</th>
+                <th className="p-2">Vehicle No</th>
+                <th className="p-2">Days Worked</th>
+                <th className="p-2">Quantity</th>
+                <th className="p-2">Day Rate</th>
+                <th className="p-2">Total Amount</th>
+                <th className="p-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {selectedInvoice.service_items.map(item => (
+                <tr key={item.id} className="border-b">
+                  <td className="p-2 font-mono">{item.item_code}</td>
+                  <td className="p-2">{item.description}</td>
+                  <td className="p-2">{item.vehicle_no}</td>
+                  <td className="p-2">{item.days_worked}</td>
+                  <td className="p-2">{item.quantity}</td>
+                  <td className="p-2">{item.day_rate}</td>
+                  <td className="p-2">${item.total_amount}</td>
+                  <td className="p-2 flex gap-1">
+                    {/* TODO: Add edit modal for service item */}
+                    <button className="bg-red-600 text-white px-2 py-1 rounded text-xs" onClick={() => deleteServiceItem(item.id)}>Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

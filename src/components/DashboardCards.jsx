@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Fragment } from "react";
 import { Card } from "./ui/Card";
-import { Building2, Users, Receipt, Banknote, UserCheck, Truck, Calendar, Shield, TrendingUp, BarChart3 } from "lucide-react";
+import { Building2, Users, Receipt, Banknote, UserCheck, Truck, Calendar, Shield, TrendingUp, BarChart3, Verified, LucideView, Check, FileArchive, FileBarChart } from "lucide-react";
 
 export function ICTDashboard() {
   return (
@@ -576,6 +576,9 @@ export function QHSSDashboard() {
       <Card title="Incidents" value={2} icon={Shield} />
       <Card title="Access Requests" value={11} icon={Calendar} color="bg-yellow-100" />
       <Card title="Permits" value={6} icon={Receipt} color="bg-blue-100" />
+      <Card title="Fitness to Work" value={6} icon={Check} color="bg-seondary" />
+      <Card title="Document Control" value={6} icon={FileArchive} color="bg-green-100" />
+      <Card title="ISO AUDIT REPORT" value={6} icon={FileBarChart} color="bg-seondary" />
     </div>
   );
 }

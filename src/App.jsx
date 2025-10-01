@@ -41,42 +41,42 @@ function App() {
     dashboardContent = (
       <div className="space-y-10">
         <section>
-          <h2 className="text-2xl font-bold mb-2 text-red-700">ICT Features</h2>
+          <h2 className="text-2xl font-bold mb-2 text-red-700">ICT & SYSTEM ADMIN DASHBOARD</h2>
           <p className="text-gray-600 mb-4">Manage users, monitor system health, and track pending ICT requests.</p>
           <ICTDashboard />
         </section>
         <section>
-          <h2 className="text-2xl font-bold mb-2 text-blue-700">HR Features</h2>
+          <h2 className="text-2xl font-bold mb-2 text-blue-700">HR DASHBOARD</h2>
           <p className="text-gray-600 mb-4">View employee stats, payroll, and leave requests.</p>
           <HRDashboard />
         </section>
         <section>
-          <h2 className="text-2xl font-bold mb-2 text-green-700">Logistics Features</h2>
+          <h2 className="text-2xl font-bold mb-2 text-green-700">Logistics DASHBOARD</h2>
           <p className="text-gray-600 mb-4">Monitor fleet size, active journeys, and fuel usage.</p>
           <LogisticsDashboard />
         </section>
         <section>
-          <h2 className="text-2xl font-bold mb-2 text-purple-700">Accounts Features</h2>
+          <h2 className="text-2xl font-bold mb-2 text-purple-700">Accounts Dashboard</h2>
           <p className="text-gray-600 mb-4">Track invoices, revenue, and vendor management.</p>
           <AccountsDashboard />
         </section>
         <section>
-          <h2 className="text-2xl font-bold mb-2 text-yellow-700">Operations Features</h2>
+          <h2 className="text-2xl font-bold mb-2 text-yellow-700">Operations Dashboard</h2>
           <p className="text-gray-600 mb-4">Manage catering orders, licenses, and vendors.</p>
           <OperationsDashboard />
         </section>
         <section>
-          <h2 className="text-2xl font-bold mb-2 text-pink-700">Business Features</h2>
+          <h2 className="text-2xl font-bold mb-2 text-pink-700">Business Dashboard</h2>
           <p className="text-gray-600 mb-4">View business opportunities, clients, and revenue.</p>
           <BusinessDashboard />
         </section>
         <section>
-          <h2 className="text-2xl font-bold mb-2 text-teal-700">QHSSE Features</h2>
+          <h2 className="text-2xl font-bold mb-2 text-teal-700">QHSSE Dahboard</h2>
           <p className="text-gray-600 mb-4">Monitor incidents, access requests, and permits.</p>
           <QHSSDashboard />
         </section>
         <section>
-          <h2 className="text-2xl font-bold mb-2 text-gray-700">Project Management Features</h2>
+          <h2 className="text-2xl font-bold mb-2 text-gray-700">Project Management Dashboard</h2>
           <p className="text-gray-600 mb-4">Manage all projects, activities, costs, and reports.</p>
           <ProjectDashboard />
         </section>

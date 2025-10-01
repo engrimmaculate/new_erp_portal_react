@@ -995,27 +995,60 @@ export function ProjectDashboard() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg p-6 mt-8">
-        <h2 className="text-xl font-bold mb-4">Project Reports</h2>
-        <div className="space-y-4">
+
+      <div className="bg-white rounded-xl shadow-lg p-8 mt-8">
+        <h2 className="text-2xl font-extrabold mb-6 text-gray-900 flex items-center gap-2">
+          <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m14-6V7a4 4 0 00-4-4H7a4 4 0 00-4 4v4m16 6v-2a4 4 0 00-4-4h-1a4 4 0 00-4 4v2" /></svg>
+          Project Reports
+        </h2>
+        {/* Summary Metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-blue-50 rounded-lg p-4 flex flex-col items-center">
+            <span className="text-3xl font-bold text-blue-600">{projects.length}</span>
+            <span className="text-sm text-gray-700">Total Projects</span>
+          </div>
+          <div className="bg-green-50 rounded-lg p-4 flex flex-col items-center">
+            <span className="text-3xl font-bold text-green-600">{projects.filter(p => p.status === 'Completed').length}</span>
+            <span className="text-sm text-gray-700">Completed</span>
+          </div>
+          <div className="bg-yellow-50 rounded-lg p-4 flex flex-col items-center">
+            <span className="text-3xl font-bold text-yellow-600">{projects.filter(p => p.status === 'In Progress').length}</span>
+            <span className="text-sm text-gray-700">In Progress</span>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-4 flex flex-col items-center">
+            <span className="text-3xl font-bold text-gray-600">{projects.filter(p => p.status === 'Pending').length}</span>
+            <span className="text-sm text-gray-700">Pending</span>
+          </div>
+        </div>
+        <div className="space-y-6">
           {projects.map(p => (
-            <div key={p.id} className="border rounded-lg p-4 mb-2">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-bold text-lg">{p.name} ({p.code})</span>
-                <span className={`px-2 py-1 rounded text-xs font-bold ${p.status === 'Completed' ? 'bg-green-200 text-green-800' : p.status === 'In Progress' ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-800'}`}>{p.status}</span>
+            <div key={p.id} className="border rounded-xl p-6 mb-2 bg-gradient-to-r from-gray-50 to-white shadow">
+              <div className="flex justify-between items-center mb-3">
+                <span className="font-bold text-lg text-gray-800">{p.name} <span className="text-xs text-gray-500">({p.code})</span></span>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold shadow ${p.status === 'Completed' ? 'bg-green-200 text-green-800' : p.status === 'In Progress' ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-800'}`}>{p.status}</span>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
-                <div><span className="font-semibold">Client:</span> {p.client}</div>
-                <div><span className="font-semibold">Site:</span> {p.site}</div>
-                <div><span className="font-semibold">Start:</span> {p.startDate}</div>
-                <div><span className="font-semibold">End:</span> {p.endDate}</div>
-                <div><span className="font-semibold">Cost:</span> ${p.cost}</div>
-                <div><span className="font-semibold">Revenue:</span> ${p.revenue}</div>
-                <div><span className="font-semibold">Progress:</span> <span className={`px-2 py-1 rounded text-xs font-bold ${p.progress === 100 ? 'bg-green-200 text-green-800' : p.progress > 0 ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-800'}`}>{p.progress}%</span></div>
-                <div><span className="font-semibold">Activities:</span> {p.activities.length}</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                <div><span className="font-semibold text-gray-700">Client:</span> <span className="text-gray-900">{p.client}</span></div>
+                <div><span className="font-semibold text-gray-700">Site:</span> <span className="text-gray-900">{p.site}</span></div>
+                <div><span className="font-semibold text-gray-700">Start:</span> <span className="text-gray-900">{p.startDate}</span></div>
+                <div><span className="font-semibold text-gray-700">End:</span> <span className="text-gray-900">{p.endDate}</span></div>
+                <div><span className="font-semibold text-gray-700">Cost:</span> <span className="text-blue-700 font-bold">${p.cost}</span></div>
+                <div><span className="font-semibold text-gray-700">Revenue:</span> <span className="text-green-700 font-bold">${p.revenue}</span></div>
+                <div><span className="font-semibold text-gray-700">Progress:</span> <span className={`px-2 py-1 rounded text-xs font-bold ${p.progress === 100 ? 'bg-green-200 text-green-800' : p.progress > 0 ? 'bg-yellow-200 text-yellow-800' : 'bg-gray-200 text-gray-800'}`}>{p.progress}%</span></div>
+                <div><span className="font-semibold text-gray-700">Activities:</span> <span className="text-gray-900">{p.activities.length}</span></div>
               </div>
-              <div className="mt-2">
-                <span className="font-semibold">Description:</span> {p.description}
+              <div className="mt-2 text-gray-700">
+                <span className="font-semibold">Description:</span> <span className="text-gray-900">{p.description}</span>
+              </div>
+              {/* Visual cues for progress */}
+              <div className="mt-4">
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className={`h-3 rounded-full ${p.progress === 100 ? 'bg-green-500' : p.progress > 0 ? 'bg-yellow-400' : 'bg-gray-400'}`} style={{ width: `${p.progress}%` }}></div>
+                </div>
+                <div className="flex justify-between text-xs mt-1 text-gray-500">
+                  <span>0%</span>
+                  <span>100%</span>
+                </div>
               </div>
             </div>
           ))}

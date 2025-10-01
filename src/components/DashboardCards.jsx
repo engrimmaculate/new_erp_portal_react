@@ -261,8 +261,25 @@ export function AccountsDashboard() {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
         <h2 className="text-xl font-bold mb-4">Edit Invoice</h2>
-        {/* TODO: Add form fields for editing invoiceForm */}
-        <button className="mt-4 bg-gray-300 px-4 py-2 rounded" onClick={() => setShowEditInvoiceModal(false)}>Close</button>
+        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); /* handle edit logic here */ setShowEditInvoiceModal(false); }}>
+          {Object.keys(invoiceForm).filter(f => f !== 'service_items').map((field) => (
+            <div key={field} className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
+              <input
+                name={field}
+                value={invoiceForm[field]}
+                onChange={handleInvoiceInput}
+                className="border rounded p-2"
+                type={field.includes('date') ? 'date' : 'text'}
+                required={true}
+              />
+            </div>
+          ))}
+          <div className="col-span-2 flex gap-2 justify-end mt-4">
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowEditInvoiceModal(false)}>Cancel</button>
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
+          </div>
+        </form>
       </div>
     </div>
   );
@@ -271,7 +288,48 @@ export function AccountsDashboard() {
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
         <h2 className="text-xl font-bold mb-4">Invoice Details</h2>
-        {/* TODO: Show all invoice details, add print button */}
+        {selectedInvoice && (
+          <div id="print-invoice">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {Object.keys(selectedInvoice).filter(f => f !== 'service_items').map((field) => (
+                <div key={field} className="flex flex-col">
+                  <span className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</span>
+                  <span className="text-gray-900">{selectedInvoice[field]}</span>
+                </div>
+              ))}
+            </div>
+            <h3 className="text-lg font-bold mb-2">Service Items</h3>
+            <table className="min-w-full text-left mb-4">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="p-2">Item Code</th>
+                  <th className="p-2">Description</th>
+                  <th className="p-2">Quantity</th>
+                  <th className="p-2">Day Rate</th>
+                  <th className="p-2">Total Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedInvoice.service_items && selectedInvoice.service_items.map(item => (
+                  <tr key={item.id} className="border-b">
+                    <td className="p-2 font-mono">{item.item_code}</td>
+                    <td className="p-2">{item.description}</td>
+                    <td className="p-2">{item.quantity}</td>
+                    <td className="p-2">{item.day_rate}</td>
+                    <td className="p-2">${item.total_amount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* Subtotal, VAT, Grand Total */}
+            <div className="flex flex-col gap-2 mb-4">
+              <div className="flex justify-between"><span className="font-semibold">Subtotal:</span> <span>${selectedInvoice.service_items ? selectedInvoice.service_items.reduce((sum, item) => sum + Number(item.total_amount || 0), 0) : 0}</span></div>
+              <div className="flex justify-between"><span className="font-semibold">VAT (7.5%):</span> <span>${selectedInvoice.service_items ? (selectedInvoice.service_items.reduce((sum, item) => sum + Number(item.total_amount || 0), 0) * 0.075).toFixed(2) : 0}</span></div>
+              <div className="flex justify-between"><span className="font-semibold">Grand Total:</span> <span>${selectedInvoice.service_items ? (selectedInvoice.service_items.reduce((sum, item) => sum + Number(item.total_amount || 0), 0) * 1.075).toFixed(2) : 0}</span></div>
+            </div>
+            <button className="bg-blue-600 text-white px-4 py-2 rounded mb-2" onClick={() => window.print()}>Print Invoice</button>
+          </div>
+        )}
         <button className="mt-4 bg-gray-300 px-4 py-2 rounded" onClick={() => setShowViewInvoiceModal(false)}>Close</button>
       </div>
     </div>

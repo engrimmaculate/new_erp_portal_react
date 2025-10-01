@@ -41,6 +41,21 @@ export function AccountsDashboard() {
   const [showServiceItemModal, setShowServiceItemModal] = useState(false);
   const [showEditServiceItemModal, setShowEditServiceItemModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  // Mock service items data (replace with API call in a real app)
+  const mockServiceItems = [
+    { id: 1, item_code: "SERV-001", description: "Consulting - 10hrs", unit: "hr", rate: 100, total_amount: 1000 },
+    { id: 2, item_code: "SERV-002", description: "Training - 5hrs", unit: "hr", rate: 150, total_amount: 750 },
+    { id: 3, item_code: "SERV-003", description: "Support - 20hrs", unit: "hr", rate: 80, total_amount: 1600 },
+    { id: 4, item_code: "SERV-004", description: "Development - 40hrs", unit: "hr", rate: 120, total_amount: 4800 },
+    { id: 5, item_code: "SERV-005", description: "Maintenance - 10hrs", unit: "hr", rate: 90, total_amount: 900 },
+  ];
+
+  const [selectedServiceItems, setSelectedServiceItems] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredServiceItems, setFilteredServiceItems] = useState(mockServiceItems);
+  const [vatRate, setVatRate] = useState(7.5);
+  const [markupRate, setMarkupRate] = useState(0);
+
   const [invoiceForm, setInvoiceForm] = useState({
     invoice_no: "",
     invoice_date: "",
@@ -108,6 +123,47 @@ export function AccountsDashboard() {
     days_to: "",
     days_from: ""
   });
+  
+  // invoice modal function
+    const handleSearch = useCallback((e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    setFilteredServiceItems(
+      mockServiceItems.filter(item =>
+        item.item_code.toLowerCase().includes(term.toLowerCase()) ||
+        item.description.toLowerCase().includes(term.toLowerCase())
+      )
+    );
+  }, []);
+
+  const addSelectedServiceItem = useCallback((item) => {
+    if (!selectedServiceItems.some(selected => selected.id === item.id)) {
+      setSelectedServiceItems(prev => [...prev, item]);
+    }
+  }, [selectedServiceItems]);
+
+  const removeSelectedServiceItem = useCallback((id) => {
+    setSelectedServiceItems(prev => prev.filter(item => item.id !== id));
+  }, []);
+
+  const calculateSubtotal = useCallback(() => {
+    return selectedServiceItems.reduce((sum, item) => sum + Number(item.total_amount || 0), 0);
+  }, [selectedServiceItems]);
+
+  const calculateVat = useCallback(() => {
+    return calculateSubtotal() * (vatRate / 100);
+  }, [calculateSubtotal, vatRate]);
+
+  const calculateMarkup = useCallback(() => {
+    return calculateSubtotal() * (markupRate / 100);
+  }, [calculateSubtotal, markupRate]);
+
+  const calculateGrandTotal = useCallback(() => {
+    return calculateSubtotal() + calculateVat() + calculateMarkup();
+  }, [calculateSubtotal, calculateVat, calculateMarkup]);
+
+
+// end invoice funcntion mdal
 
   const handleInvoiceInput = useCallback((e) => {
     const { name, value } = e.target;
@@ -124,13 +180,13 @@ export function AccountsDashboard() {
     setServiceItemForm((prev) => ({ ...prev, [name]: value }));
   }, []);
 
-  const addInvoice = useCallback(() => {
+  const addInvoice = useCallback((data) => {
     setInvoices(prev => [
       ...prev,
       {
-        ...invoiceForm,
+        ...data,
         id: Date.now(),
-        service_items: [],
+        // service_items: [],
       }
     ]);
     setInvoiceForm({
@@ -348,21 +404,65 @@ export function AccountsDashboard() {
       </div>
 
       {/* Invoice Modal */}
-      <InvoiceModal
-        isOpen={showInvoiceModal}
-        onClose={() => setShowInvoiceModal(false)}
-        form={invoiceForm}
-        onChange={handleInvoiceInput}
-        onSubmit={addInvoice}
-      />
+       <InvoiceModal
+      isOpen={showInvoiceModal}
+      onClose={() => {
+        setShowInvoiceModal(false);
+        setSelectedServiceItems([]);
+        setSearchTerm("");
+      }}
+      form={invoiceForm}
+      onChange={handleInvoiceInput}
+      onSubmit={(data) => {
+        addInvoice(data);
+        setSelectedServiceItems([]);
+        setSearchTerm("");
+      }}
+      selectedServiceItems={selectedServiceItems}
+      setSelectedServiceItems={setSelectedServiceItems}
+      searchTerm={searchTerm}
+      filteredServiceItems={filteredServiceItems}
+      vatRate={vatRate}
+      markupRate={markupRate}
+      handleSearch={handleSearch}
+      addSelectedServiceItem={addSelectedServiceItem}
+      removeSelectedServiceItem={removeSelectedServiceItem}
+      calculateSubtotal={calculateSubtotal}
+      calculateVat={calculateVat}
+      calculateMarkup={calculateMarkup}
+      calculateGrandTotal={calculateGrandTotal}
+    />
 
-      {/* Edit Invoice Modal */}
-      <EditInvoiceModal
-        isOpen={showEditInvoiceModal}
-        onClose={() => setShowEditInvoiceModal(false)}
-        form={invoiceForm}
-        onChange={handleInvoiceInput}
-      />
+    {/* Edit Invoice Modal */}
+    <EditInvoiceModal
+      isOpen={showEditInvoiceModal}
+      onClose={() => {
+        setShowEditInvoiceModal(false);
+        setSelectedServiceItems(selectedInvoice?.service_items || []);
+        setSearchTerm("");
+      }}
+      form={invoiceForm}
+      onChange={handleInvoiceInput}
+      onSubmit={(data) => {
+        // Implement your edit logic here
+        setShowEditInvoiceModal(false);
+        setSelectedServiceItems([]);
+        setSearchTerm("");
+      }}
+      selectedServiceItems={selectedServiceItems}
+      setSelectedServiceItems={setSelectedServiceItems}
+      searchTerm={searchTerm}
+      filteredServiceItems={filteredServiceItems}
+      vatRate={vatRate}
+      markupRate={markupRate}
+      handleSearch={handleSearch}
+      addSelectedServiceItem={addSelectedServiceItem}
+      removeSelectedServiceItem={removeSelectedServiceItem}
+      calculateSubtotal={calculateSubtotal}
+      calculateVat={calculateVat}
+      calculateMarkup={calculateMarkup}
+      calculateGrandTotal={calculateGrandTotal}
+    />
 
       {/* View Invoice Modal */}
       <ViewInvoiceModal
@@ -431,69 +531,441 @@ export function AccountsDashboard() {
 }
 
 // InvoiceModal Component
-const InvoiceModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
-        <h2 className="text-xl font-bold mb-4">Create Invoice</h2>
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
-          {Object.keys(form).filter(f => f !== 'service_items').map((field, index) => (
-            <div key={field} className="flex flex-col">
-              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
+  const InvoiceModal = ({
+    isOpen,
+    onClose,
+    form,
+    onChange,
+    onSubmit,
+    selectedServiceItems,
+    setSelectedServiceItems,
+    searchTerm,
+    filteredServiceItems,
+    vatRate,
+    markupRate,
+    handleSearch,
+    addSelectedServiceItem,
+    removeSelectedServiceItem,
+    calculateSubtotal,
+    calculateVat,
+    calculateMarkup,
+    calculateGrandTotal
+  }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-6xl max-h-[95vh] overflow-y-auto">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800">Create New Invoice</h2>
+
+          {/* Invoice Details Section */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">Invoice Details</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Object.keys(form).filter(f => f !== 'service_items' && !['amount', 'status'].includes(f)).map((field, index) => (
+                <div key={field} className="flex flex-col">
+                  <label className="text-xs font-semibold mb-1 capitalize text-gray-600">{field.replace(/_/g, ' ')}</label>
+                  <input
+                    name={field}
+                    value={form[field]}
+                    onChange={onChange}
+                    className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                    type={field.includes('date') ? 'date' : 'text'}
+                    required={field !== 'management_fees' && field !== 'transport_fees'}
+                    autoFocus={index === 0}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Service Items Section */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">Service Items</h3>
+
+            {/* Search and Add Service Items */}
+            <div className="mb-4">
+              <label className="text-xs font-semibold mb-1 text-gray-600">Search Service Items</label>
               <input
-                name={field}
-                value={form[field]}
-                onChange={onChange}
-                className="border rounded p-2"
-                type={field.includes('date') ? 'date' : 'text'}
-                required={field !== 'management_fees' && field !== 'transport_fees'}
-                autoFocus={index === 0}
+                type="text"
+                value={searchTerm}
+                onChange={handleSearch}
+                placeholder="Search by code or description..."
+                className="w-full border rounded-lg p-2.5 mb-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+              />
+              {filteredServiceItems.length > 0 && (
+                <div className="border rounded-lg p-2 bg-gray-50 max-h-48 overflow-y-auto">
+                  {filteredServiceItems.map(item => (
+                    <div
+                      key={item.id}
+                      onClick={() => addSelectedServiceItem(item)}
+                      className="p-2 hover:bg-blue-50 rounded cursor-pointer flex justify-between items-center"
+                    >
+                      <div>
+                        <div className="font-medium text-gray-800">{item.item_code}</div>
+                        <div className="text-xs text-gray-600">{item.description}</div>
+                      </div>
+                      <div className="text-sm font-medium text-gray-800">${item.total_amount}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Selected Service Items Table */}
+            {selectedServiceItems.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold mb-2 text-gray-700">Selected Items</h4>
+                <div className="overflow-x-auto border rounded-lg">
+                  <table className="min-w-full text-left">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="p-3 text-xs font-semibold text-gray-600">Item Code</th>
+                        <th className="p-3 text-xs font-semibold text-gray-600">Description</th>
+                        <th className="p-3 text-xs font-semibold text-gray-600">Unit</th>
+                        <th className="p-3 text-xs font-semibold text-gray-600">Rate</th>
+                        <th className="p-3 text-xs font-semibold text-gray-600">Amount</th>
+                        <th className="p-3 text-xs font-semibold text-gray-600">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedServiceItems.map(item => (
+                        <tr key={item.id} className="border-b border-gray-100">
+                          <td className="p-3 text-sm text-gray-800">{item.item_code}</td>
+                          <td className="p-3 text-sm text-gray-800">{item.description}</td>
+                          <td className="p-3 text-sm text-gray-800">{item.unit}</td>
+                          <td className="p-3 text-sm text-gray-800">${item.rate}</td>
+                          <td className="p-3 text-sm text-gray-800">${item.total_amount}</td>
+                          <td className="p-3">
+                            <button
+                              type="button"
+                              onClick={() => removeSelectedServiceItem(item.id)}
+                              className="text-red-500 hover:text-red-700 text-xs font-medium"
+                            >
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Summary Section */}
+          <div className="border-t pt-6 mb-6">
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">Summary</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="flex flex-col">
+                <label className="text-xs font-semibold mb-1 text-gray-600">Subtotal</label>
+                <input
+                  type="text"
+                  value={`$${calculateSubtotal().toFixed(2)}`}
+                  readOnly
+                  className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs font-semibold mb-1 text-gray-600">VAT Rate (%)</label>
+                <input
+                  type="number"
+                  value={vatRate}
+                  onChange={(e) => setVatRate(Number(e.target.value))}
+                  className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs font-semibold mb-1 text-gray-600">VAT Amount</label>
+                <input
+                  type="text"
+                  value={`$${calculateVat().toFixed(2)}`}
+                  readOnly
+                  className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs font-semibold mb-1 text-gray-600">Markup Rate (%)</label>
+                <input
+                  type="number"
+                  value={markupRate}
+                  onChange={(e) => setMarkupRate(Number(e.target.value))}
+                  className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs font-semibold mb-1 text-gray-600">Markup Amount</label>
+                <input
+                  type="text"
+                  value={`$${calculateMarkup().toFixed(2)}`}
+                  readOnly
+                  className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs font-semibold mb-1 text-gray-600">Grand Total</label>
+                <input
+                  type="text"
+                  value={`$${calculateGrandTotal().toFixed(2)}`}
+                  readOnly
+                  className="border rounded-lg p-2.5 bg-gray-100 text-sm font-bold text-blue-600"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              onClick={(e) => {
+                e.preventDefault();
+                onSubmit({ ...form, service_items: selectedServiceItems, amount: calculateGrandTotal() });
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+            >
+              Create Invoice
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+
+
+// EditInvoiceModal Component
+const EditInvoiceModal = ({
+  isOpen,
+  onClose,
+  form,
+  onChange,
+  selectedServiceItems,
+  setSelectedServiceItems,
+  searchTerm,
+  filteredServiceItems,
+  vatRate,
+  markupRate,
+  handleSearch,
+  addSelectedServiceItem,
+  removeSelectedServiceItem,
+  calculateSubtotal,
+  calculateVat,
+  calculateMarkup,
+  calculateGrandTotal
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-6xl max-h-[95vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">Edit Invoice</h2>
+
+        {/* Invoice Details Section */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Invoice Details</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Object.keys(form).filter(f => f !== 'service_items' && !['amount', 'status'].includes(f)).map((field, index) => (
+              <div key={field} className="flex flex-col">
+                <label className="text-xs font-semibold mb-1 capitalize text-gray-600">{field.replace(/_/g, ' ')}</label>
+                <input
+                  name={field}
+                  value={form[field]}
+                  onChange={onChange}
+                  className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                  type={field.includes('date') ? 'date' : 'text'}
+                  required={true}
+                  autoComplete="off"
+                  autoFocus={index === 0}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Service Items Section */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Service Items</h3>
+
+          {/* Search and Add Service Items */}
+          <div className="mb-4">
+            <label className="text-xs font-semibold mb-1 text-gray-600">Search Service Items</label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearch}
+              placeholder="Search by code or description..."
+              className="w-full border rounded-lg p-2.5 mb-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+            />
+            {filteredServiceItems.length > 0 && (
+              <div className="border rounded-lg p-2 bg-gray-50 max-h-48 overflow-y-auto">
+                {filteredServiceItems.map(item => (
+                  <div
+                    key={item.id}
+                    onClick={() => addSelectedServiceItem(item)}
+                    className="p-2 hover:bg-blue-50 rounded cursor-pointer flex justify-between items-center"
+                  >
+                    <div>
+                      <div className="font-medium text-gray-800">{item.item_code}</div>
+                      <div className="text-xs text-gray-600">{item.description}</div>
+                    </div>
+                    <div className="text-sm font-medium text-gray-800">${item.total_amount}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Selected Service Items Table */}
+          {selectedServiceItems.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold mb-2 text-gray-700">Selected Items</h4>
+              <div className="overflow-x-auto border rounded-lg">
+                <table className="min-w-full text-left">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Item Code</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Description</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Unit</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Rate</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Amount</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedServiceItems.map(item => (
+                      <tr key={item.id} className="border-b border-gray-100">
+                        <td className="p-3 text-sm text-gray-800">{item.item_code}</td>
+                        <td className="p-3 text-sm text-gray-800">{item.description}</td>
+                        <td className="p-3 text-sm text-gray-800">{item.unit}</td>
+                        <td className="p-3 text-sm text-gray-800">${item.rate}</td>
+                        <td className="p-3 text-sm text-gray-800">${item.total_amount}</td>
+                        <td className="p-3">
+                          <button
+                            type="button"
+                            onClick={() => removeSelectedServiceItem(item.id)}
+                            className="text-red-500 hover:text-red-700 text-xs font-medium"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Summary Section */}
+        <div className="border-t pt-6 mb-6">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Summary</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 text-gray-600">Subtotal</label>
+              <input
+                type="text"
+                value={`$${calculateSubtotal().toFixed(2)}`}
+                readOnly
+                className="border rounded-lg p-2.5 bg-gray-100 text-sm"
               />
             </div>
-          ))}
-          <div className="col-span-2 flex gap-2 justify-end mt-4">
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
-            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Create Invoice</button>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 text-gray-600">VAT Rate (%)</label>
+              <input
+                type="number"
+                value={vatRate}
+                onChange={(e) => setVatRate(Number(e.target.value))}
+                className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                min="0"
+                max="100"
+                step="0.1"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 text-gray-600">VAT Amount</label>
+              <input
+                type="text"
+                value={`$${calculateVat().toFixed(2)}`}
+                readOnly
+                className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 text-gray-600">Markup Rate (%)</label>
+              <input
+                type="number"
+                value={markupRate}
+                onChange={(e) => setMarkupRate(Number(e.target.value))}
+                className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                min="0"
+                max="100"
+                step="0.1"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 text-gray-600">Markup Amount</label>
+              <input
+                type="text"
+                value={`$${calculateMarkup().toFixed(2)}`}
+                readOnly
+                className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 text-gray-600">Grand Total</label>
+              <input
+                type="text"
+                value={`$${calculateGrandTotal().toFixed(2)}`}
+                readOnly
+                className="border rounded-lg p-2.5 bg-gray-100 text-sm font-bold text-blue-600"
+              />
+            </div>
           </div>
-        </form>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 pt-4 border-t">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            onClick={(e) => {
+              e.preventDefault();
+              onSubmit({ ...form, service_items: selectedServiceItems, amount: calculateGrandTotal() });
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+          >
+            Save Changes
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-// EditInvoiceModal Component
-const EditInvoiceModal = ({ isOpen, onClose, form, onChange }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
-        <h2 className="text-xl font-bold mb-4">Edit Invoice</h2>
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); onClose(); }}>
-          {Object.keys(form).filter(f => f !== 'service_items').map((field, index) => (
-            <div key={field} className="flex flex-col">
-              <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
-              <input
-                name={field}
-                value={form[field]}
-                onChange={onChange}
-                className="border rounded p-2"
-                type={field.includes('date') ? 'date' : 'text'}
-                required={true}
-                autoComplete="off"
-                autoFocus={index === 0}
-              />
-            </div>
-          ))}
-          <div className="col-span-2 flex gap-2 justify-end mt-4">
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
-            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
+
+
 
 // ViewInvoiceModal Component
 const ViewInvoiceModal = ({ isOpen, onClose, invoice }) => {
@@ -553,10 +1025,10 @@ const ViewInvoiceModal = ({ isOpen, onClose, invoice }) => {
 const ServiceItemModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg overflow-y-auto max-h-[90vh]">
-        <h2 className="text-xl font-bold mb-4">Add Service Item</h2>
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-4xl overflow-y-auto max-h-[90vh]">
+        <h2 className="text-xl font-bold mb-6">Add Service Item</h2>
+        <form className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
           {Object.keys(form).map((field, index) => (
             <div key={field} className="flex flex-col">
               <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
@@ -571,7 +1043,7 @@ const ServiceItemModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
               />
             </div>
           ))}
-          <div className="col-span-2 flex gap-2 justify-end mt-4">
+          <div className="col-span-full flex gap-2 justify-end mt-4">
             <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Add Service Item</button>
           </div>
@@ -581,14 +1053,15 @@ const ServiceItemModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
   );
 };
 
+
 // EditServiceItemModal Component
 const EditServiceItemModal = ({ isOpen, onClose, item, onChange, onSave }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg overflow-y-auto max-h-[90vh]">
-        <h2 className="text-xl font-bold mb-4">Edit Service Item</h2>
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={e => { e.preventDefault(); onSave(); }}>
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-4xl overflow-y-auto max-h-[90vh]">
+        <h2 className="text-xl font-bold mb-6">Edit Service Item</h2>
+        <form className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" onSubmit={e => { e.preventDefault(); onSave(); }}>
           {item && Object.keys(item).map((field, index) => (
             <div key={field} className="flex flex-col">
               <label className="text-xs font-semibold mb-1 capitalize">{field.replace(/_/g, ' ')}</label>
@@ -603,7 +1076,7 @@ const EditServiceItemModal = ({ isOpen, onClose, item, onChange, onSave }) => {
               />
             </div>
           ))}
-          <div className="col-span-2 flex gap-2 justify-end mt-4">
+          <div className="col-span-full flex gap-2 justify-end mt-4">
             <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
             <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
           </div>
@@ -612,6 +1085,7 @@ const EditServiceItemModal = ({ isOpen, onClose, item, onChange, onSave }) => {
     </div>
   );
 };
+
 
 export function OperationsDashboard() {
   return (
@@ -1063,29 +1537,57 @@ export function ProjectDashboard() {
 const ProjectModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
-        <h2 className="text-xl font-bold mb-4">Add New Project</h2>
-        <form className="space-y-3" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
-          <input name="code" value={form.code} onChange={onChange} className="border rounded p-2 w-full" placeholder="Project Code" required autoFocus />
-          <input name="name" value={form.name} onChange={onChange} className="border rounded p-2 w-full" placeholder="Project Name" required />
-          <textarea name="description" value={form.description} onChange={onChange} className="border rounded p-2 w-full" placeholder="Description" rows={2} />
-          <input name="client" value={form.client} onChange={onChange} className="border rounded p-2 w-full" placeholder="Client" required />
-          <input name="site" value={form.site} onChange={onChange} className="border rounded p-2 w-full" placeholder="Site" required />
-          <div className="flex gap-2">
-            <input name="startDate" value={form.startDate} onChange={onChange} className="border rounded p-2 w-full" type="date" placeholder="Start Date" required />
-            <input name="endDate" value={form.endDate} onChange={onChange} className="border rounded p-2 w-full" type="date" placeholder="End Date" required />
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-4xl">
+        <h2 className="text-xl font-bold mb-6">Add New Project</h2>
+        <form className="space-y-4" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Project Code</label>
+              <input name="code" value={form.code} onChange={onChange} className="border rounded p-2" placeholder="Project Code" required autoFocus />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Project Name</label>
+              <input name="name" value={form.name} onChange={onChange} className="border rounded p-2" placeholder="Project Name" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Client</label>
+              <input name="client" value={form.client} onChange={onChange} className="border rounded p-2" placeholder="Client" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Site</label>
+              <input name="site" value={form.site} onChange={onChange} className="border rounded p-2" placeholder="Site" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Start Date</label>
+              <input name="startDate" value={form.startDate} onChange={onChange} className="border rounded p-2" type="date" placeholder="Start Date" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">End Date</label>
+              <input name="endDate" value={form.endDate} onChange={onChange} className="border rounded p-2" type="date" placeholder="End Date" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Cost</label>
+              <input name="cost" value={form.cost} onChange={onChange} className="border rounded p-2" type="number" placeholder="Cost" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Revenue</label>
+              <input name="revenue" value={form.revenue} onChange={onChange} className="border rounded p-2" type="number" placeholder="Revenue" required />
+            </div>
           </div>
-          <div className="flex gap-2">
-            <input name="cost" value={form.cost} onChange={onChange} className="border rounded p-2 w-full" type="number" placeholder="Cost" required />
-            <input name="revenue" value={form.revenue} onChange={onChange} className="border rounded p-2 w-full" type="number" placeholder="Revenue" required />
+          <div className="flex flex-col">
+            <label className="text-xs font-semibold mb-1">Description</label>
+            <textarea name="description" value={form.description} onChange={onChange} className="border rounded p-2" placeholder="Description" rows={3} />
           </div>
-          <select name="status" value={form.status} onChange={onChange} className="border rounded p-2 w-full">
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-          </select>
-          <div className="flex gap-2 justify-end">
+          <div className="flex flex-col">
+            <label className="text-xs font-semibold mb-1">Status</label>
+            <select name="status" value={form.status} onChange={onChange} className="border rounded p-2">
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+          <div className="flex gap-2 justify-end pt-4">
             <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
             <button type="submit" className="bg-red-600 text-white px-4 py-2 rounded">Add Project</button>
           </div>
@@ -1095,34 +1597,66 @@ const ProjectModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
   );
 };
 
+
 // EditProjectModal Component
 const EditProjectModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
-        <h2 className="text-xl font-bold mb-4">Edit Project</h2>
-        <form className="space-y-3" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
-          <input name="code" value={form.code} onChange={onChange} className="border rounded p-2 w-full" placeholder="Project Code" required autoFocus />
-          <input name="name" value={form.name} onChange={onChange} className="border rounded p-2 w-full" placeholder="Project Name" required />
-          <textarea name="description" value={form.description} onChange={onChange} className="border rounded p-2 w-full" placeholder="Description" rows={2} />
-          <input name="client" value={form.client} onChange={onChange} className="border rounded p-2 w-full" placeholder="Client" required />
-          <input name="site" value={form.site} onChange={onChange} className="border rounded p-2 w-full" placeholder="Site" required />
-          <div className="flex gap-2">
-            <input name="startDate" value={form.startDate} onChange={onChange} className="border rounded p-2 w-full" type="date" placeholder="Start Date" required />
-            <input name="endDate" value={form.endDate} onChange={onChange} className="border rounded p-2 w-full" type="date" placeholder="End Date" required />
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-4xl">
+        <h2 className="text-xl font-bold mb-6">Edit Project</h2>
+        <form className="space-y-4" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Project Code</label>
+              <input name="code" value={form.code} onChange={onChange} className="border rounded p-2" placeholder="Project Code" required autoFocus />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Project Name</label>
+              <input name="name" value={form.name} onChange={onChange} className="border rounded p-2" placeholder="Project Name" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Client</label>
+              <input name="client" value={form.client} onChange={onChange} className="border rounded p-2" placeholder="Client" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Site</label>
+              <input name="site" value={form.site} onChange={onChange} className="border rounded p-2" placeholder="Site" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Start Date</label>
+              <input name="startDate" value={form.startDate} onChange={onChange} className="border rounded p-2" type="date" placeholder="Start Date" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">End Date</label>
+              <input name="endDate" value={form.endDate} onChange={onChange} className="border rounded p-2" type="date" placeholder="End Date" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Cost</label>
+              <input name="cost" value={form.cost} onChange={onChange} className="border rounded p-2" type="number" placeholder="Cost" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Revenue</label>
+              <input name="revenue" value={form.revenue} onChange={onChange} className="border rounded p-2" type="number" placeholder="Revenue" required />
+            </div>
           </div>
-          <div className="flex gap-2">
-            <input name="cost" value={form.cost} onChange={onChange} className="border rounded p-2 w-full" type="number" placeholder="Cost" required />
-            <input name="revenue" value={form.revenue} onChange={onChange} className="border rounded p-2 w-full" type="number" placeholder="Revenue" required />
+          <div className="flex flex-col">
+            <label className="text-xs font-semibold mb-1">Description</label>
+            <textarea name="description" value={form.description} onChange={onChange} className="border rounded p-2" placeholder="Description" rows={3} />
           </div>
-          <select name="status" value={form.status} onChange={onChange} className="border rounded p-2 w-full">
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-          </select>
-          <input name="progress" value={form.progress} onChange={onChange} className="border rounded p-2 w-full" type="number" min="0" max="100" placeholder="Progress (%)" />
-          <div className="flex gap-2 justify-end">
+          <div className="flex flex-col">
+            <label className="text-xs font-semibold mb-1">Status</label>
+            <select name="status" value={form.status} onChange={onChange} className="border rounded p-2">
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs font-semibold mb-1">Progress (%)</label>
+            <input name="progress" value={form.progress} onChange={onChange} className="border rounded p-2" type="number" min="0" max="100" placeholder="Progress" />
+          </div>
+          <div className="flex gap-2 justify-end pt-4">
             <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
             <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
           </div>
@@ -1132,31 +1666,54 @@ const EditProjectModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
   );
 };
 
+
 // ActivityModal Component
 const ActivityModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-lg">
-        <h2 className="text-xl font-bold mb-4">Add New Activity</h2>
-        <form className="space-y-3" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
-          <input name="code" value={form.code} onChange={onChange} className="border rounded p-2 w-full" placeholder="Activity Code" required autoFocus />
-          <input name="name" value={form.name} onChange={onChange} className="border rounded p-2 w-full" placeholder="Activity Name" required />
-          <input name="assignee" value={form.assignee} onChange={onChange} className="border rounded p-2 w-full" placeholder="Assignee" required />
-          <input name="assigner" value={form.assigner} onChange={onChange} className="border rounded p-2 w-full" placeholder="Assigner" required />
-          <div className="flex gap-2">
-            <input name="startDate" value={form.startDate} onChange={onChange} className="border rounded p-2 w-full" type="date" placeholder="Start Date" required />
-            <input name="endDate" value={form.endDate} onChange={onChange} className="border rounded p-2 w-full" type="date" placeholder="End Date" required />
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-4xl">
+        <h2 className="text-xl font-bold mb-6">Add New Activity</h2>
+        <form className="space-y-4" onSubmit={e => { e.preventDefault(); onSubmit(); }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Activity Code</label>
+              <input name="code" value={form.code} onChange={onChange} className="border rounded p-2" placeholder="Activity Code" required autoFocus />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Activity Name</label>
+              <input name="name" value={form.name} onChange={onChange} className="border rounded p-2" placeholder="Activity Name" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Assignee</label>
+              <input name="assignee" value={form.assignee} onChange={onChange} className="border rounded p-2" placeholder="Assignee" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Assigner</label>
+              <input name="assigner" value={form.assigner} onChange={onChange} className="border rounded p-2" placeholder="Assigner" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Start Date</label>
+              <input name="startDate" value={form.startDate} onChange={onChange} className="border rounded p-2" type="date" placeholder="Start Date" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">End Date</label>
+              <input name="endDate" value={form.endDate} onChange={onChange} className="border rounded p-2" type="date" placeholder="End Date" required />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Progress (%)</label>
+              <input name="progress" value={form.progress} onChange={onChange} className="border rounded p-2" type="number" min="0" max="100" placeholder="Progress" />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1">Status</label>
+              <select name="status" value={form.status} onChange={onChange} className="border rounded p-2">
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <input name="progress" value={form.progress} onChange={onChange} className="border rounded p-2 w-full" type="number" min="0" max="100" placeholder="Progress (%)" />
-            <select name="status" value={form.status} onChange={onChange} className="border rounded p-2 w-full">
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
-          <div className="flex gap-2 justify-end">
+          <div className="flex gap-2 justify-end pt-4">
             <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={onClose}>Cancel</button>
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Add Activity</button>
           </div>
@@ -1166,11 +1723,12 @@ const ActivityModal = ({ isOpen, onClose, form, onChange, onSubmit }) => {
   );
 };
 
+
 // ViewActivitiesModal Component
 const ViewActivitiesModal = ({ project, onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl">
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-6xl">
         <h2 className="text-xl font-bold mb-4">Project Activities - {project.name}</h2>
         <table className="min-w-full text-left mb-4">
           <thead>

@@ -423,7 +423,11 @@ export function AccountsDashboard() {
 
   // Invoice CRUD actions
   const deleteInvoice = (id) => setInvoices(prev => prev.filter(inv => inv.id !== id));
-  const openEditInvoice = (invoice) => { setSelectedInvoice(invoice); setShowEditInvoiceModal(true); };
+  const openEditInvoice = (invoice) => {
+    setSelectedInvoice(invoice);
+    setInvoiceForm({ ...invoice });
+    setShowEditInvoiceModal(true);
+  };
   const openViewInvoice = (invoice) => { setSelectedInvoice(invoice); setShowViewInvoiceModal(true); };
   const openServiceItemModal = (invoice) => {
     setSelectedInvoice(invoice);

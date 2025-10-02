@@ -73,9 +73,11 @@ export function AccountsDashboard() {
     gl_debit_account: "", // link to chart of account table, Make this a type searchable dropdown
     gl_debit_account_id: "", // link to chart of account table, Make this a type searchable dropdown
     service_location_code: "", // link to client service location table, Make this a type searchable dropdown
-    vat: "",
-    tin_no: "",
-    po_no: "",
+    vat: "", // VAT Code 
+    tin_no: "", // Tax Identification Number
+    po_no: "", // Purchase Order Number
+    wcc: "", // Worker's Compensation Certificate Number
+    pay_advice_no: "", // Payment Advice Number for invoices that have been paid for
     focal_person_id: "", // link to client contact person table, Make this a type searchable dropdown
     service_description_id: "", // link to service description table, Make this a type searchable dropdown
     service_location_id: "",  // link to client service location table, Make this a type searchable dropdown
@@ -93,21 +95,17 @@ export function AccountsDashboard() {
     amount: "",
     user_id: "", // link to user table, Make this a type searchable dropdown
     invoice_type: "", // make it a drop down menu e.g. Memorandum, Service, etc
-    
     invoice_service_code: "", // link to service code table, Make this a type searchable dropdown
     invoice_service_class: "", // e.g. make it a drop down menu with options link to service category table
-    wcc: "",
-    pay_advice_no: "",
     billed_to: "",
     company_name: "",
     service_address: "",
     service_city: "",
     service_state: "",
     management_fees: "",
-    
     transport_fees: "",
     service_items: [],
-    status: "Pending" // make it A DROP DOWN SELECT OPTION : Pending, Approved, Paid
+    status: "Pending", // make it A DROP DOWN SELECT OPTION : Pending, Approved, Paid
   });
   const [editServiceItem, setEditServiceItem] = useState(null);
   const [serviceItemForm, setServiceItemForm] = useState({

@@ -41,64 +41,73 @@ export function AccountsDashboard() {
   const [showServiceItemModal, setShowServiceItemModal] = useState(false);
   const [showEditServiceItemModal, setShowEditServiceItemModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [editableServiceItems, setEditableServiceItems] = useState([]);
   // Mock service items data (replace with API call in a real app)
   const mockServiceItems = [
-    { id: 1, item_code: "SERV-001", description: "Consulting - 10hrs", unit: "hr", rate: 100, total_amount: 1000 },
-    { id: 2, item_code: "SERV-002", description: "Training - 5hrs", unit: "hr", rate: 150, total_amount: 750 },
-    { id: 3, item_code: "SERV-003", description: "Support - 20hrs", unit: "hr", rate: 80, total_amount: 1600 },
-    { id: 4, item_code: "SERV-004", description: "Development - 40hrs", unit: "hr", rate: 120, total_amount: 4800 },
-    { id: 5, item_code: "SERV-005", description: "Maintenance - 10hrs", unit: "hr", rate: 90, total_amount: 900 },
+    { id: 1, item_code: "SERV-001", description: "Provision Of Catering and House Keeping Services", item_category:"Catering", quantity:1, no_of_persons:30,days_worked:30, unit: "hr", rate: 100, total_amount: 1000 },
+    { id: 2, item_code: "SERV-002", description: "provision of HouseBoat - 60 Man",  item_category:"House Boat", quantity:1, no_of_persons:30,days_worked:30, unit: "hr", rate: 150, total_amount: 750 },
+    { id: 3, item_code: "SERV-003", description: "Security Support Services - 24 hrs",  item_category:"Security", quantity:1, no_of_persons:30,days_worked:30,  unit: "hr", rate: 80, total_amount: 1600 },
+    { id: 4, item_code: "SERV-004", description: "Provision Vehicle for Executive Movement", item_category:"Vehicle",vehicle_no:"456AH", quantity:1, no_of_persons:30,days_worked:30,  unit: "hr", rate: 120, total_amount: 4800 },
+    { id: 5, item_code: "SERV-005", description: "Provsoion of House Boat (40 man)", item_category:"House Boat",  quantity:1, no_of_persons:30,days_worked:30, unit: "hr", rate: 90, total_amount: 900 },
+    { id: 6, item_code: "SERV-006", description: "Provision of Table Water", item_category:"Water",  quantity:300, no_of_persons:30,days_worked:30, unit: "hr", rate: 90, total_amount: 900 },
+    { id: 7, item_code: "SERV-007", description: "{Provision of AGO} - 3000 Ltrs @ 850", item_category:"AGO" , quantity:1, no_of_persons:30,days_worked:30, unit: "hr", rate: 90, total_amount: 900 },
+    { id: 8, item_code: "SERV-008", description: "Provision of Welfare", item_category:"Welfare" , quantity:1, no_of_persons:30,days_worked:30, unit: "hr", rate: 90, total_amount: 900 },
+    { id: 9, item_code: "SERV-009", description: "Provision Of PortaCabin", item_category:"Porta Cabin",  quantity:1, no_of_persons:30,days_worked:30, unit: "hr", rate: 90, total_amount: 900 },
   ];
 
   const [selectedServiceItems, setSelectedServiceItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredServiceItems, setFilteredServiceItems] = useState(mockServiceItems);
   const [vatRate, setVatRate] = useState(7.5);
-  const [markupRate, setMarkupRate] = useState(0);
+  const [markupRate, setMarkupRate] = useState(20);
 
   const [invoiceForm, setInvoiceForm] = useState({
-    invoice_no: "",
+    invoice_no: "", // auto generated and editable
     invoice_date: "",
     vendor_code: "",
     service_entry_no: "",
-    customer_uniqueid: "",
-    gl_credit_account: "",
-    gl_credit_account_id: "",
-    account_uniqueid: "",
-    gl_debit_account: "",
-    gl_debit_account_id: "",
-    service_location_code: "",
+    customer_uniqueid: "", // link to customer table, Make this a type searchable dropdown
+    gl_credit_account: "", // link to general ledger account table, Make this a type searchable dropdown
+    gl_credit_account_id: "", // link to general ledger account table, Make this a type searchable dropdown
+    account_uniqueid: "", // link to chart of account table, Make this a type searchable dropdown
+    gl_debit_account: "", // link to chart of account table, Make this a type searchable dropdown
+    gl_debit_account_id: "", // link to chart of account table, Make this a type searchable dropdown
+    service_location_code: "", // link to client service location table, Make this a type searchable dropdown
     vat: "",
     tin_no: "",
     po_no: "",
-    focal_person_id: "",
-    service_description_id: "",
-    service_location_id: "",
-    signatory: "",
-    client_id: "",
-    client_bank_account_id: "",
-    client_bank_account_id_2: "",
+    focal_person_id: "", // link to client contact person table, Make this a type searchable dropdown
+    service_description_id: "", // link to service description table, Make this a type searchable dropdown
+    service_location_id: "",  // link to client service location table, Make this a type searchable dropdown
+    signatory: "", // link to signatory table, Make this a type searchable dropdown
+    client_id: "", // link to client table, Make this a type searchable dropdown
+    client_bank_account_id_NGN: "", // For Nigerian Naira, make this input type searchable dropdown to select
+    client_bank_account_id_USD: "", // For US Dollars make this input type searchable dropdown to select
     bank_name: "",
     branch: "",
     account_name: "",
     account_no: "",
     sortcode: "",
-    currency_type: "",
+    currency_type: "", // make it drop down with options NGN, USD, EUR
     status: "Pending",
     amount: "",
-    user_id: "",
-    invoice_type: "",
-    billed_to: "",
-    invoice_service_code: "",
-    invoice_service_class: "",
+    user_id: "", // link to user table, Make this a type searchable dropdown
+    invoice_type: "", // make it a drop down menu e.g. Memorandum, Service, etc
+    
+    invoice_service_code: "", // link to service code table, Make this a type searchable dropdown
+    invoice_service_class: "", // e.g. make it a drop down menu with options link to service category table
     wcc: "",
     pay_advice_no: "",
-    service_city: "",
+    billed_to: "",
+    company_name: "",
     service_address: "",
-    management_fees: "",
+    service_city: "",
     service_state: "",
+    management_fees: "",
+    
     transport_fees: "",
-    service_items: []
+    service_items: [],
+    status: "Pending" // make it A DROP DOWN SELECT OPTION : Pending, Approved, Paid
   });
   const [editServiceItem, setEditServiceItem] = useState(null);
   const [serviceItemForm, setServiceItemForm] = useState({
@@ -124,6 +133,23 @@ export function AccountsDashboard() {
     days_from: ""
   });
   
+  const calculateItemTotal = useCallback((item) => {
+  const quantity = Number(item.quantity || 1);
+  const rate = Number(item.rate || 0);
+  const noOfDays = Number(item.no_of_days || 1);
+  const noOfPersons = Number(item.no_of_persons || 1);
+
+  if (item.item_category === "vehicle") {
+    return (quantity *noOfDays) * rate ;
+  } else {
+    return (quantity * noOfDays * noOfPersons) * rate ;
+  }
+}, []);
+
+const calculateSubtotal = useCallback(() => {
+  return editableServiceItems.reduce((sum, item) => sum + calculateItemTotal(item), 0);
+}, [editableServiceItems, calculateItemTotal]);
+
   // invoice modal function
     const handleSearch = useCallback((e) => {
     const term = e.target.value;
@@ -136,19 +162,53 @@ export function AccountsDashboard() {
     );
   }, []);
 
+  // const addSelectedServiceItem = useCallback((item) => {
+  //   if (!selectedServiceItems.some(selected => selected.id === item.id)) {
+  //     setSelectedServiceItems(prev => [...prev, item]);
+  //   }
+  // }, [selectedServiceItems]);
+
   const addSelectedServiceItem = useCallback((item) => {
-    if (!selectedServiceItems.some(selected => selected.id === item.id)) {
-      setSelectedServiceItems(prev => [...prev, item]);
-    }
-  }, [selectedServiceItems]);
+  if (!editableServiceItems.some(selected => selected.id === item.id)) {
+    setEditableServiceItems(prev => [
+      ...prev,
+      {
+        ...item,
+        no_of_days: item.item_category === "vehicle" ? 1 : 0,
+        quantity: 1,
+        no_of_persons: item.item_category === "vehicle" ? 1 : 1,
+        vehicle_no: item.item_category === "vehicle" ? item.vehicle_no : null,
+        total_amount: calculateItemTotal({
+          ...item,
+          no_of_days: item.item_category === "vehicle" ? 1 : 1,
+          quantity: 1,
+          no_of_persons: item.item_category === "vehicle" ? 1 : 1
+        })
+      }
+    ]);
+  }
+}, [editableServiceItems, calculateItemTotal]);
+
 
   const removeSelectedServiceItem = useCallback((id) => {
     setSelectedServiceItems(prev => prev.filter(item => item.id !== id));
   }, []);
 
-  const calculateSubtotal = useCallback(() => {
-    return selectedServiceItems.reduce((sum, item) => sum + Number(item.total_amount || 0), 0);
-  }, [selectedServiceItems]);
+  // new subtotal, vat, markup, grand total functions
+  
+
+const updateEditableServiceItem = useCallback((id, field, value) => {
+  setEditableServiceItems(prev =>
+    prev.map(item =>
+      item.id === id ? { ...item, [field]: value } : item
+    )
+  );
+}, []);
+
+
+  // const calculateSubtotal = useCallback(() => {
+  //   return selectedServiceItems.reduce((sum, item) => sum + Number(item.total_amount || 0), 0);
+  // }, [selectedServiceItems]);
 
   const calculateVat = useCallback(() => {
     return calculateSubtotal() * (vatRate / 100);
@@ -404,64 +464,71 @@ export function AccountsDashboard() {
       </div>
 
       {/* Invoice Modal */}
-       <InvoiceModal
-      isOpen={showInvoiceModal}
-      onClose={() => {
-        setShowInvoiceModal(false);
-        setSelectedServiceItems([]);
-        setSearchTerm("");
-      }}
-      form={invoiceForm}
-      onChange={handleInvoiceInput}
-      onSubmit={(data) => {
-        addInvoice(data);
-        setSelectedServiceItems([]);
-        setSearchTerm("");
-      }}
-      selectedServiceItems={selectedServiceItems}
-      setSelectedServiceItems={setSelectedServiceItems}
-      searchTerm={searchTerm}
-      filteredServiceItems={filteredServiceItems}
-      vatRate={vatRate}
-      markupRate={markupRate}
-      handleSearch={handleSearch}
-      addSelectedServiceItem={addSelectedServiceItem}
-      removeSelectedServiceItem={removeSelectedServiceItem}
-      calculateSubtotal={calculateSubtotal}
-      calculateVat={calculateVat}
-      calculateMarkup={calculateMarkup}
-      calculateGrandTotal={calculateGrandTotal}
-    />
+  <InvoiceModal
+  isOpen={showInvoiceModal}
+  onClose={() => {
+    setShowInvoiceModal(false);
+    setEditableServiceItems([]);
+    setSearchTerm("");
+  }}
+  form={invoiceForm}
+  onChange={handleInvoiceInput}
+  onSubmit={(data) => {
+    addInvoice(data);
+    setEditableServiceItems([]);
+    setSearchTerm("");
+  }}
+  editableServiceItems={editableServiceItems}
+  setEditableServiceItems={setEditableServiceItems}
+  searchTerm={searchTerm}
+  filteredServiceItems={filteredServiceItems}
+  vatRate={vatRate}
+  markupRate={markupRate}
+  handleSearch={handleSearch}
+  addSelectedServiceItem={addSelectedServiceItem}
+  removeSelectedServiceItem={removeSelectedServiceItem}
+  updateEditableServiceItem={updateEditableServiceItem}
+  calculateSubtotal={calculateSubtotal}
+  calculateVat={calculateVat}
+  calculateMarkup={calculateMarkup}
+  calculateGrandTotal={calculateGrandTotal}
+  calculateItemTotal={calculateItemTotal}
+/>
 
     {/* Edit Invoice Modal */}
     <EditInvoiceModal
       isOpen={showEditInvoiceModal}
       onClose={() => {
         setShowEditInvoiceModal(false);
-        setSelectedServiceItems(selectedInvoice?.service_items || []);
+        setEditableServiceItems([]);
         setSearchTerm("");
       }}
       form={invoiceForm}
       onChange={handleInvoiceInput}
       onSubmit={(data) => {
         // Implement your edit logic here
+        setInvoices(prev => prev.map(inv =>
+          inv.id === selectedInvoice.id ? { ...inv, ...data } : inv
+        ));
         setShowEditInvoiceModal(false);
-        setSelectedServiceItems([]);
+        setEditableServiceItems([]);
         setSearchTerm("");
       }}
-      selectedServiceItems={selectedServiceItems}
-      setSelectedServiceItems={setSelectedServiceItems}
-      searchTerm={searchTerm}
+      editableServiceItems={editableServiceItems}
+      setEditableServiceItems={setEditableServiceItems}
+      setSearchTerm={setSearchTerm}
       filteredServiceItems={filteredServiceItems}
       vatRate={vatRate}
       markupRate={markupRate}
       handleSearch={handleSearch}
       addSelectedServiceItem={addSelectedServiceItem}
-      removeSelectedServiceItem={removeSelectedServiceItem}
+      removeSelectedServiceItem={(id) => setEditableServiceItems(prev => prev.filter(item => item.id !== id))}
+      updateEditableServiceItem={updateEditableServiceItem}
       calculateSubtotal={calculateSubtotal}
       calculateVat={calculateVat}
       calculateMarkup={calculateMarkup}
       calculateGrandTotal={calculateGrandTotal}
+      calculateItemTotal={calculateItemTotal}
     />
 
       {/* View Invoice Modal */}
@@ -531,247 +598,755 @@ export function AccountsDashboard() {
 }
 
 // InvoiceModal Component
-  const InvoiceModal = ({
-    isOpen,
-    onClose,
-    form,
-    onChange,
-    onSubmit,
-    selectedServiceItems,
-    setSelectedServiceItems,
-    searchTerm,
-    filteredServiceItems,
-    vatRate,
-    markupRate,
-    handleSearch,
-    addSelectedServiceItem,
-    removeSelectedServiceItem,
-    calculateSubtotal,
-    calculateVat,
-    calculateMarkup,
-    calculateGrandTotal
-  }) => {
-    if (!isOpen) return null;
+  // const InvoiceModal = ({
+  //   isOpen,
+  //   onClose,
+  //   form,
+  //   onChange,
+  //   onSubmit,
+  //   selectedServiceItems,
+  //   setSelectedServiceItems,
+  //   searchTerm,
+  //   filteredServiceItems,
+  //   vatRate,
+  //   markupRate,
+  //   handleSearch,
+  //   addSelectedServiceItem,
+  //   removeSelectedServiceItem,
+  //   calculateSubtotal,
+  //   calculateVat,
+  //   calculateMarkup,
+  //   calculateGrandTotal
+  // }) => {
+  //   if (!isOpen) return null;
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-6xl max-h-[95vh] overflow-y-auto">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">Create New Invoice</h2>
+  //   return (
+  //     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+  //       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-6xl max-h-[95vh] overflow-y-auto">
+  //         <h2 className="text-2xl font-bold mb-6 text-gray-800">Create New Invoice</h2>
 
-          {/* Invoice Details Section */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4 text-gray-700">Invoice Details</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {Object.keys(form).filter(f => f !== 'service_items' && !['amount', 'status'].includes(f)).map((field, index) => (
-                <div key={field} className="flex flex-col">
-                  <label className="text-xs font-semibold mb-1 capitalize text-gray-600">{field.replace(/_/g, ' ')}</label>
-                  <input
-                    name={field}
-                    value={form[field]}
-                    onChange={onChange}
-                    className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                    type={field.includes('date') ? 'date' : 'text'}
-                    required={field !== 'management_fees' && field !== 'transport_fees'}
-                    autoFocus={index === 0}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+  //         {/* Invoice Details Section */}
+  //         <div className="mb-8">
+  //           <h3 className="text-lg font-semibold mb-4 text-gray-700">Invoice Details</h3>
+  //           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+  //             {Object.keys(form).filter(f => f !== 'service_items' && !['amount', 'status'].includes(f)).map((field, index) => (
+  //               <div key={field} className="flex flex-col">
+  //                 <label className="text-xs font-semibold mb-1 capitalize text-gray-600">{field.replace(/_/g, ' ')}</label>
+  //                 <input
+  //                   name={field}
+  //                   value={form[field]}
+  //                   onChange={onChange}
+  //                   className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+  //                   type={field.includes('date') ? 'date' : 'text'}
+  //                   required={field !== 'management_fees' && field !== 'transport_fees'}
+  //                   autoFocus={index === 0}
+  //                 />
+  //               </div>
+  //             ))}
+  //           </div>
+  //         </div>
 
-          {/* Service Items Section */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4 text-gray-700">Service Items</h3>
+  //         {/* Service Items Section */}
+  //         <div className="mb-8">
+  //           <h3 className="text-lg font-semibold mb-4 text-gray-700">Service Items</h3>
 
-            {/* Search and Add Service Items */}
-            <div className="mb-4">
-              <label className="text-xs font-semibold mb-1 text-gray-600">Search Service Items</label>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={handleSearch}
-                placeholder="Search by code or description..."
-                className="w-full border rounded-lg p-2.5 mb-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-              />
-              {filteredServiceItems.length > 0 && (
-                <div className="border rounded-lg p-2 bg-gray-50 max-h-48 overflow-y-auto">
-                  {filteredServiceItems.map(item => (
-                    <div
-                      key={item.id}
-                      onClick={() => addSelectedServiceItem(item)}
-                      className="p-2 hover:bg-blue-50 rounded cursor-pointer flex justify-between items-center"
-                    >
-                      <div>
-                        <div className="font-medium text-gray-800">{item.item_code}</div>
-                        <div className="text-xs text-gray-600">{item.description}</div>
-                      </div>
-                      <div className="text-sm font-medium text-gray-800">${item.total_amount}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+  //           {/* Search and Add Service Items */}
+  //           <div className="mb-4">
+  //             <label className="text-xs font-semibold mb-1 text-gray-600">Search Service Items</label>
+  //             <input
+  //               type="text"
+  //               value={searchTerm}
+  //               onChange={handleSearch}
+  //               placeholder="Search by code or description..."
+  //               className="w-full border rounded-lg p-2.5 mb-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+  //             />
+  //             {filteredServiceItems.length > 0 && (
+  //               <div className="border rounded-lg p-2 bg-gray-50 max-h-48 overflow-y-auto">
+  //                 {filteredServiceItems.map(item => (
+  //                   <div
+  //                     key={item.id}
+  //                     onClick={() => addSelectedServiceItem(item)}
+  //                     className="p-2 hover:bg-blue-50 rounded cursor-pointer flex justify-between items-center"
+  //                   >
+  //                     <div>
+  //                       <div className="font-medium text-gray-800">{item.item_code}</div>
+  //                       <div className="text-xs text-gray-600">{item.description}</div>
+  //                     </div>
+  //                     <div className="text-sm font-medium text-gray-800">${item.total_amount}</div>
+  //                   </div>
+  //                 ))}
+  //               </div>
+  //             )}
+  //           </div>
 
-            {/* Selected Service Items Table */}
-            {selectedServiceItems.length > 0 && (
-              <div className="mb-4">
-                <h4 className="text-sm font-semibold mb-2 text-gray-700">Selected Items</h4>
-                <div className="overflow-x-auto border rounded-lg">
-                  <table className="min-w-full text-left">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="p-3 text-xs font-semibold text-gray-600">Item Code</th>
-                        <th className="p-3 text-xs font-semibold text-gray-600">Description</th>
-                        <th className="p-3 text-xs font-semibold text-gray-600">Unit</th>
-                        <th className="p-3 text-xs font-semibold text-gray-600">Rate</th>
-                        <th className="p-3 text-xs font-semibold text-gray-600">Amount</th>
-                        <th className="p-3 text-xs font-semibold text-gray-600">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedServiceItems.map(item => (
-                        <tr key={item.id} className="border-b border-gray-100">
-                          <td className="p-3 text-sm text-gray-800">{item.item_code}</td>
-                          <td className="p-3 text-sm text-gray-800">{item.description}</td>
-                          <td className="p-3 text-sm text-gray-800">{item.unit}</td>
-                          <td className="p-3 text-sm text-gray-800">${item.rate}</td>
-                          <td className="p-3 text-sm text-gray-800">${item.total_amount}</td>
-                          <td className="p-3">
-                            <button
-                              type="button"
-                              onClick={() => removeSelectedServiceItem(item.id)}
-                              className="text-red-500 hover:text-red-700 text-xs font-medium"
-                            >
-                              Remove
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
+  //           {/* Selected Service Items Table */}
+  //           {selectedServiceItems.length > 0 && (
+  //             <div className="mb-4">
+  //               <h4 className="text-sm font-semibold mb-2 text-gray-700">Selected Items</h4>
+  //               <div className="overflow-x-auto border rounded-lg">
+  //                 <table className="min-w-full text-left">
+  //                   <thead className="bg-gray-100">
+  //                     <tr>
+  //                       <th className="p-3 text-xs font-semibold text-gray-600">Item Code</th>
+  //                       <th className="p-3 text-xs font-semibold text-gray-600">Description</th>
+  //                       <th className="p-3 text-xs font-semibold text-gray-600">Unit</th>
+  //                       <th className="p-3 text-xs font-semibold text-gray-600">Rate</th>
+  //                       <th className="p-3 text-xs font-semibold text-gray-600">Amount</th>
+  //                       <th className="p-3 text-xs font-semibold text-gray-600">Action</th>
+  //                     </tr>
+  //                   </thead>
+  //                   <tbody>
+  //                     {selectedServiceItems.map(item => (
+  //                       <tr key={item.id} className="border-b border-gray-100">
+  //                         <td className="p-3 text-sm text-gray-800">{item.item_code}</td>
+  //                         <td className="p-3 text-sm text-gray-800">{item.description}</td>
+  //                         <td className="p-3 text-sm text-gray-800">{item.unit}</td>
+  //                         <td className="p-3 text-sm text-gray-800">${item.rate}</td>
+  //                         <td className="p-3 text-sm text-gray-800">${item.total_amount}</td>
+  //                         <td className="p-3">
+  //                           <button
+  //                             type="button"
+  //                             onClick={() => removeSelectedServiceItem(item.id)}
+  //                             className="text-red-500 hover:text-red-700 text-xs font-medium"
+  //                           >
+  //                             Remove
+  //                           </button>
+  //                         </td>
+  //                       </tr>
+  //                     ))}
+  //                   </tbody>
+  //                 </table>
+  //               </div>
+  //             </div>
+  //           )}
+  //         </div>
 
-          {/* Summary Section */}
-          <div className="border-t pt-6 mb-6">
-            <h3 className="text-lg font-semibold mb-4 text-gray-700">Summary</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              <div className="flex flex-col">
-                <label className="text-xs font-semibold mb-1 text-gray-600">Subtotal</label>
-                <input
-                  type="text"
-                  value={`$${calculateSubtotal().toFixed(2)}`}
-                  readOnly
-                  className="border rounded-lg p-2.5 bg-gray-100 text-sm"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-xs font-semibold mb-1 text-gray-600">VAT Rate (%)</label>
-                <input
-                  type="number"
-                  value={vatRate}
-                  onChange={(e) => setVatRate(Number(e.target.value))}
-                  className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-xs font-semibold mb-1 text-gray-600">VAT Amount</label>
-                <input
-                  type="text"
-                  value={`$${calculateVat().toFixed(2)}`}
-                  readOnly
-                  className="border rounded-lg p-2.5 bg-gray-100 text-sm"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-xs font-semibold mb-1 text-gray-600">Markup Rate (%)</label>
-                <input
-                  type="number"
-                  value={markupRate}
-                  onChange={(e) => setMarkupRate(Number(e.target.value))}
-                  className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-xs font-semibold mb-1 text-gray-600">Markup Amount</label>
-                <input
-                  type="text"
-                  value={`$${calculateMarkup().toFixed(2)}`}
-                  readOnly
-                  className="border rounded-lg p-2.5 bg-gray-100 text-sm"
-                />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-xs font-semibold mb-1 text-gray-600">Grand Total</label>
-                <input
-                  type="text"
-                  value={`$${calculateGrandTotal().toFixed(2)}`}
-                  readOnly
-                  className="border rounded-lg p-2.5 bg-gray-100 text-sm font-bold text-blue-600"
-                />
-              </div>
-            </div>
-          </div>
+  //         {/* Summary Section */}
+  //         <div className="border-t pt-6 mb-6">
+  //           <h3 className="text-lg font-semibold mb-4 text-gray-700">Summary</h3>
+  //           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+  //             <div className="flex flex-col">
+  //               <label className="text-xs font-semibold mb-1 text-gray-600">Subtotal</label>
+  //               <input
+  //                 type="text"
+  //                 value={`$${calculateSubtotal().toFixed(2)}`}
+  //                 readOnly
+  //                 className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+  //               />
+  //             </div>
+  //             <div className="flex flex-col">
+  //               <label className="text-xs font-semibold mb-1 text-gray-600">VAT Rate (%)</label>
+  //               <input
+  //                 type="number"
+  //                 value={vatRate}
+  //                 onChange={(e) => setVatRate(Number(e.target.value))}
+  //                 className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+  //                 min="0"
+  //                 max="100"
+  //                 step="0.1"
+  //               />
+  //             </div>
+  //             <div className="flex flex-col">
+  //               <label className="text-xs font-semibold mb-1 text-gray-600">VAT Amount</label>
+  //               <input
+  //                 type="text"
+  //                 value={`$${calculateVat().toFixed(2)}`}
+  //                 readOnly
+  //                 className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+  //               />
+  //             </div>
+  //             <div className="flex flex-col">
+  //               <label className="text-xs font-semibold mb-1 text-gray-600">Markup Rate (%)</label>
+  //               <input
+  //                 type="number"
+  //                 value={markupRate}
+  //                 onChange={(e) => setMarkupRate(Number(e.target.value))}
+  //                 className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+  //                 min="0"
+  //                 max="100"
+  //                 step="0.1"
+  //               />
+  //             </div>
+  //             <div className="flex flex-col">
+  //               <label className="text-xs font-semibold mb-1 text-gray-600">Markup Amount</label>
+  //               <input
+  //                 type="text"
+  //                 value={`$${calculateMarkup().toFixed(2)}`}
+  //                 readOnly
+  //                 className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+  //               />
+  //             </div>
+  //             <div className="flex flex-col">
+  //               <label className="text-xs font-semibold mb-1 text-gray-600">Grand Total</label>
+  //               <input
+  //                 type="text"
+  //                 value={`$${calculateGrandTotal().toFixed(2)}`}
+  //                 readOnly
+  //                 className="border rounded-lg p-2.5 bg-gray-100 text-sm font-bold text-blue-600"
+  //               />
+  //             </div>
+  //           </div>
+  //         </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              onClick={(e) => {
-                e.preventDefault();
-                onSubmit({ ...form, service_items: selectedServiceItems, amount: calculateGrandTotal() });
-              }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
-            >
-              Create Invoice
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-
-
-// EditInvoiceModal Component
-const EditInvoiceModal = ({
+  //         {/* Action Buttons */}
+  //         <div className="flex justify-end gap-3 pt-4 border-t">
+  //           <button
+  //             type="button"
+  //             onClick={onClose}
+  //             className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
+  //           >
+  //             Cancel
+  //           </button>
+  //           <button
+  //             type="submit"
+  //             onClick={(e) => {
+  //               e.preventDefault();
+  //               onSubmit({ ...form, service_items: selectedServiceItems, amount: calculateGrandTotal() });
+  //             }}
+  //             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+  //           >
+  //             Create Invoice
+  //           </button>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // };
+const InvoiceModal = ({
   isOpen,
   onClose,
   form,
   onChange,
-  selectedServiceItems,
-  setSelectedServiceItems,
+  onSubmit,
+  editableServiceItems,
+  setEditableServiceItems,
   searchTerm,
+  setSearchTerm,
   filteredServiceItems,
   vatRate,
   markupRate,
   handleSearch,
   addSelectedServiceItem,
   removeSelectedServiceItem,
+  updateEditableServiceItem,
   calculateSubtotal,
   calculateVat,
   calculateMarkup,
-  calculateGrandTotal
+  calculateGrandTotal,
+  calculateItemTotal
 }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-6xl max-h-[95vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">Create New Invoice</h2>
+
+        {/* Invoice Details Section */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Invoice Details</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Object.keys(form).filter(f => f !== 'service_items' && !['amount', 'status'].includes(f)).map((field, index) => (
+              <div key={field} className="flex flex-col">
+                <label className="text-xs font-semibold mb-1 capitalize text-gray-600">{field.replace(/_/g, ' ')}</label>
+                <input
+                  name={field}
+                  value={form[field]}
+                  onChange={onChange}
+                  className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                  type={field.includes('date') ? 'date' : 'text'}
+                  required={field !== 'management_fees' && field !== 'transport_fees'}
+                  autoFocus={index === 0}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Service Items Section */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Service Items</h3>
+
+          {/* Search and Add Service Items */}
+          <div className="mb-6">
+            <label className="text-xs font-semibold mb-1 text-gray-600">Search Service Items</label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={handleSearch}
+              placeholder="Search by code or description..."
+              className="w-full border rounded-lg p-2.5 mb-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+            />
+            {filteredServiceItems.length > 0 && (
+              <div className="border rounded-lg p-2 bg-gray-50 max-h-48 overflow-y-auto">
+                {filteredServiceItems.map(item => (
+                  <div
+                    key={item.id}
+                    onClick={() => addSelectedServiceItem(item)}
+                    className="p-2 hover:bg-blue-50 rounded cursor-pointer flex justify-between items-center"
+                  >
+                    <div>
+                      <div className="font-medium text-gray-800">{item.item_code}</div>
+                      <div className="text-xs text-gray-600">{item.description}</div>
+                    </div>
+                    <div className="text-sm font-medium text-gray-800">${item.rate}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Selected Service Items Table */}
+          {editableServiceItems.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold mb-3 text-gray-700">Selected Items</h4>
+              <div className="overflow-x-auto border rounded-lg">
+                <table className="min-w-full text-left">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Item Code</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Description</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Category</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">No. of Days</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Quantity</th>
+                      {editableServiceItems.some(item => item.item_category !== "vehicle") && (
+                        <th className="p-3 text-xs font-semibold text-gray-600">No. of Persons</th>
+                      )}
+                      {editableServiceItems.some(item => item.item_category === "vehicle") && (
+                        <th className="p-3 text-xs font-semibold text-gray-600">Vehicle No.</th>
+                      )}
+                      <th className="p-3 text-xs font-semibold text-gray-600">Rate</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Total Amount</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {editableServiceItems.map(item => (
+                      <tr key={item.id} className="border-b border-gray-100">
+                        <td className="p-3 text-sm text-gray-800">{item.item_code}</td>
+                        <td className="p-3 text-sm text-gray-800">{item.description}</td>
+                        <td className="p-3 text-sm text-gray-800">{item.item_category}</td>
+                        <td className="p-3">
+                          <input
+                            type="number"
+                            value={item.no_of_days}
+                            onChange={(e) => {
+                              const value = Number(e.target.value);
+                              updateEditableServiceItem(item.id, 'no_of_days', value);
+                              updateEditableServiceItem(item.id, 'total_amount', calculateItemTotal({...item, no_of_days: value}));
+                            }}
+                            className="border rounded p-1.5 w-16 text-sm focus:ring-1 focus:ring-blue-400"
+                            min="0"
+                          />
+                        </td>
+                        <td className="p-3">
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => {
+                              const value = Number(e.target.value);
+                              updateEditableServiceItem(item.id, 'quantity', value);
+                              updateEditableServiceItem(item.id, 'total_amount', calculateItemTotal({...item, quantity: value}));
+                            }}
+                            className="border rounded p-1.5 w-16 text-sm focus:ring-1 focus:ring-blue-400"
+                            min="0"
+                          />
+                        </td>
+                        {item.item_category !== "vehicle" && (
+                          <td className="p-3">
+                            <input
+                              type="number"
+                              value={item.no_of_persons}
+                              onChange={(e) => {
+                                const value = Number(e.target.value);
+                                updateEditableServiceItem(item.id, 'no_of_persons', value);
+                                updateEditableServiceItem(item.id, 'total_amount', calculateItemTotal({...item, no_of_persons: value}));
+                              }}
+                              className="border rounded p-1.5 w-16 text-sm focus:ring-1 focus:ring-blue-400"
+                              min="0"
+                            />
+                          </td>
+                        )}
+                        {item.item_category === "vehicle" && (
+                          <td className="p-3">
+                            <input
+                              type="text"
+                              value={item.vehicle_no || ""}
+                              onChange={(e) => updateEditableServiceItem(item.id, 'vehicle_no', e.target.value)}
+                              className="border rounded p-1.5 w-24 text-sm focus:ring-1 focus:ring-blue-400"
+                              placeholder="Vehicle No."
+                            />
+                          </td>
+                        )}
+                        <td className="p-3 text-sm text-gray-800">${item.rate}</td>
+                        <td className="p-3 text-sm font-medium text-gray-800">${item.total_amount.toFixed(2)}</td>
+                        <td className="p-3">
+                          <button
+                            type="button"
+                            onClick={() => removeSelectedServiceItem(item.id)}
+                            className="text-red-500 hover:text-red-700 text-xs font-medium"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Summary Section */}
+        <div className="border-t pt-6 mb-6">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">Summary</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 text-gray-600">Subtotal</label>
+              <input
+                type="text"
+                value={`$${calculateSubtotal().toFixed(2)}`}
+                readOnly
+                className="border rounded-lg p-2.5 bg-gray-100 text-sm font-medium"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 text-gray-600">VAT Rate (%)</label>
+              <input
+                type="number"
+                value={vatRate}
+                onChange={(e) => setVatRate(Number(e.target.value))}
+                className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                min="0"
+                max="100"
+                step="0.1"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 text-gray-600">VAT Amount</label>
+              <input
+                type="text"
+                value={`$${(calculateSubtotal() * (vatRate / 100)).toFixed(2)}`}
+                readOnly
+                className="border rounded-lg p-2.5 bg-gray-100 text-sm font-medium"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 text-gray-600">Markup Rate (%)</label>
+              <input
+                type="number"
+                value={markupRate}
+                onChange={(e) => setMarkupRate(Number(e.target.value))}
+                className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                min="0"
+                max="100"
+                
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 text-gray-600">Markup Amount</label>
+              <input
+                type="text"
+                value={`$${(calculateSubtotal() * (markupRate / 100)).toFixed(2)}`}
+                readOnly
+                className="border rounded-lg p-2.5 bg-gray-100 text-sm font-medium"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold mb-1 text-gray-600">Grand Total</label>
+              <input
+                type="text"
+                value={`$${(
+                  calculateSubtotal() +
+                  (calculateSubtotal() * (vatRate / 100)) +
+                  (calculateSubtotal() * (markupRate / 100))
+                ).toFixed(2)}`}
+                readOnly
+                className="border rounded-lg p-2.5 bg-gray-100 text-sm font-bold text-blue-600"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 pt-4 border-t">
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              setEditableServiceItems([]);
+              setSearchTerm("");
+            }}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            onClick={(e) => {
+              e.preventDefault();
+              onSubmit({
+                ...form,
+                service_items: editableServiceItems,
+                amount: calculateSubtotal() + (calculateSubtotal() * (vatRate / 100)) + (calculateSubtotal() * (markupRate / 100))
+              });
+              setEditableServiceItems([]);
+              setSearchTerm("");
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+          >
+            Create Invoice
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+
+// EditInvoiceModal Component
+// const EditInvoiceModal = ({
+//   isOpen,
+//   onClose,
+//   form,
+//   onChange,
+//   selectedServiceItems,
+//   setSelectedServiceItems,
+//   searchTerm,
+//   filteredServiceItems,
+//   vatRate,
+//   markupRate,
+//   handleSearch,
+//   addSelectedServiceItem,
+//   removeSelectedServiceItem,
+//   calculateSubtotal,
+//   calculateVat,
+//   calculateMarkup,
+//   calculateGrandTotal
+// }) => {
+//   if (!isOpen) return null;
+
+//   return (
+//     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+//       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-6xl max-h-[95vh] overflow-y-auto">
+//         <h2 className="text-2xl font-bold mb-6 text-gray-800">Edit Invoice</h2>
+
+//         {/* Invoice Details Section */}
+//         <div className="mb-8">
+//           <h3 className="text-lg font-semibold mb-4 text-gray-700">Invoice Details</h3>
+//           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+//             {Object.keys(form).filter(f => f !== 'service_items' && !['amount', 'status'].includes(f)).map((field, index) => (
+//               <div key={field} className="flex flex-col">
+//                 <label className="text-xs font-semibold mb-1 capitalize text-gray-600">{field.replace(/_/g, ' ')}</label>
+//                 <input
+//                   name={field}
+//                   value={form[field]}
+//                   onChange={onChange}
+//                   className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+//                   type={field.includes('date') ? 'date' : 'text'}
+//                   required={true}
+//                   autoComplete="off"
+//                   autoFocus={index === 0}
+//                 />
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+
+//         {/* Service Items Section */}
+//         <div className="mb-8">
+//           <h3 className="text-lg font-semibold mb-4 text-gray-700">Service Items</h3>
+
+//           {/* Search and Add Service Items */}
+//           <div className="mb-4">
+//             <label className="text-xs font-semibold mb-1 text-gray-600">Search Service Items</label>
+//             <input
+//               type="text"
+//               value={searchTerm}
+//               onChange={handleSearch}
+//               placeholder="Search by code or description..."
+//               className="w-full border rounded-lg p-2.5 mb-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+//             />
+//             {filteredServiceItems.length > 0 && (
+//               <div className="border rounded-lg p-2 bg-gray-50 max-h-48 overflow-y-auto">
+//                 {filteredServiceItems.map(item => (
+//                   <div
+//                     key={item.id}
+//                     onClick={() => addSelectedServiceItem(item)}
+//                     className="p-2 hover:bg-blue-50 rounded cursor-pointer flex justify-between items-center"
+//                   >
+//                     <div>
+//                       <div className="font-medium text-gray-800">{item.item_code}</div>
+//                       <div className="text-xs text-gray-600">{item.description}</div>
+//                     </div>
+//                     <div className="text-sm font-medium text-gray-800">${item.total_amount}</div>
+//                   </div>
+//                 ))}
+//               </div>
+//             )}
+//           </div>
+
+//           {/* Selected Service Items Table */}
+//           {selectedServiceItems.length > 0 && (
+//             <div className="mb-4">
+//               <h4 className="text-sm font-semibold mb-2 text-gray-700">Selected Items</h4>
+//               <div className="overflow-x-auto border rounded-lg">
+//                 <table className="min-w-full text-left">
+//                   <thead className="bg-gray-100">
+//                     <tr>
+//                       <th className="p-3 text-xs font-semibold text-gray-600">Item Code</th>
+//                       <th className="p-3 text-xs font-semibold text-gray-600">Description</th>
+//                       <th className="p-3 text-xs font-semibold text-gray-600">Unit</th>
+//                       <th className="p-3 text-xs font-semibold text-gray-600">Rate</th>
+//                       <th className="p-3 text-xs font-semibold text-gray-600">Amount</th>
+//                       <th className="p-3 text-xs font-semibold text-gray-600">Action</th>
+//                     </tr>
+//                   </thead>
+//                   <tbody>
+//                     {selectedServiceItems.map(item => (
+//                       <tr key={item.id} className="border-b border-gray-100">
+//                         <td className="p-3 text-sm text-gray-800">{item.item_code}</td>
+//                         <td className="p-3 text-sm text-gray-800">{item.description}</td>
+//                         <td className="p-3 text-sm text-gray-800">{item.unit}</td>
+//                         <td className="p-3 text-sm text-gray-800">${item.rate}</td>
+//                         <td className="p-3 text-sm text-gray-800">${item.total_amount}</td>
+//                         <td className="p-3">
+//                           <button
+//                             type="button"
+//                             onClick={() => removeSelectedServiceItem(item.id)}
+//                             className="text-red-500 hover:text-red-700 text-xs font-medium"
+//                           >
+//                             Remove
+//                           </button>
+//                         </td>
+//                       </tr>
+//                     ))}
+//                   </tbody>
+//                 </table>
+//               </div>
+//             </div>
+//           )}
+//         </div>
+
+//         {/* Summary Section */}
+//         <div className="border-t pt-6 mb-6">
+//           <h3 className="text-lg font-semibold mb-4 text-gray-700">Summary</h3>
+//           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+//             <div className="flex flex-col">
+//               <label className="text-xs font-semibold mb-1 text-gray-600">Subtotal</label>
+//               <input
+//                 type="text"
+//                 value={`$${calculateSubtotal().toFixed(2)}`}
+//                 readOnly
+//                 className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+//               />
+//             </div>
+//             <div className="flex flex-col">
+//               <label className="text-xs font-semibold mb-1 text-gray-600">VAT Rate (%)</label>
+//               <input
+//                 type="number"
+//                 value={vatRate}
+//                 onChange={(e) => setVatRate(Number(e.target.value))}
+//                 className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+//                 min="0"
+//                 max="100"
+//                 step="0.1"
+//               />
+//             </div>
+//             <div className="flex flex-col">
+//               <label className="text-xs font-semibold mb-1 text-gray-600">VAT Amount</label>
+//               <input
+//                 type="text"
+//                 value={`$${calculateVat().toFixed(2)}`}
+//                 readOnly
+//                 className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+//               />
+//             </div>
+//             <div className="flex flex-col">
+//               <label className="text-xs font-semibold mb-1 text-gray-600">Markup Rate (%)</label>
+//               <input
+//                 type="number"
+//                 value={markupRate}
+//                 onChange={(e) => setMarkupRate(Number(e.target.value))}
+//                 className="border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+//                 min="0"
+//                 max="100"
+//                 step="0.1"
+//               />
+//             </div>
+//             <div className="flex flex-col">
+//               <label className="text-xs font-semibold mb-1 text-gray-600">Markup Amount</label>
+//               <input
+//                 type="text"
+//                 value={`$${calculateMarkup().toFixed(2)}`}
+//                 readOnly
+//                 className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+//               />
+//             </div>
+//             <div className="flex flex-col">
+//               <label className="text-xs font-semibold mb-1 text-gray-600">Grand Total</label>
+//               <input
+//                 type="text"
+//                 value={`$${calculateGrandTotal().toFixed(2)}`}
+//                 readOnly
+//                 className="border rounded-lg p-2.5 bg-gray-100 text-sm font-bold text-blue-600"
+//               />
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Action Buttons */}
+//         <div className="flex justify-end gap-3 pt-4 border-t">
+//           <button
+//             type="button"
+//             onClick={onClose}
+//             className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
+//           >
+//             Cancel
+//           </button>
+//           <button
+//             type="submit"
+//             onClick={(e) => {
+//               e.preventDefault();
+//               onSubmit({ ...form, service_items: selectedServiceItems, amount: calculateGrandTotal() });
+//             }}
+//             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+//           >
+//             Save Changes
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+const EditInvoiceModal = ({
+  isOpen,
+  onClose,
+  form,
+  onChange,
+  editableServiceItems,
+  setEditableServiceItems,
+  searchTerm,
+  setSearchTerm,
+  filteredServiceItems,
+  vatRate,
+  markupRate,
+  handleSearch,
+  addSelectedServiceItem,
+  removeSelectedServiceItem,
+  updateEditableServiceItem,
+  calculateSubtotal,
+  calculateVat,
+  calculateMarkup,
+  calculateGrandTotal,
+  calculateItemTotal
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-6xl max-h-[95vh] overflow-y-auto">
         <h2 className="text-2xl font-bold mb-6 text-gray-800">Edit Invoice</h2>
 
@@ -802,7 +1377,7 @@ const EditInvoiceModal = ({
           <h3 className="text-lg font-semibold mb-4 text-gray-700">Service Items</h3>
 
           {/* Search and Add Service Items */}
-          <div className="mb-4">
+          <div className="mb-6">
             <label className="text-xs font-semibold mb-1 text-gray-600">Search Service Items</label>
             <input
               type="text"
@@ -831,29 +1406,89 @@ const EditInvoiceModal = ({
           </div>
 
           {/* Selected Service Items Table */}
-          {selectedServiceItems.length > 0 && (
+          {editableServiceItems.length > 0 && (
             <div className="mb-4">
-              <h4 className="text-sm font-semibold mb-2 text-gray-700">Selected Items</h4>
+              <h4 className="text-sm font-semibold mb-3 text-gray-700">Selected Items</h4>
               <div className="overflow-x-auto border rounded-lg">
                 <table className="min-w-full text-left">
                   <thead className="bg-gray-100">
                     <tr>
                       <th className="p-3 text-xs font-semibold text-gray-600">Item Code</th>
                       <th className="p-3 text-xs font-semibold text-gray-600">Description</th>
-                      <th className="p-3 text-xs font-semibold text-gray-600">Unit</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Category</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">No. of Days</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Quantity</th>
+                      {editableServiceItems.some(item => item.item_category !== "vehicle") && (
+                        <th className="p-3 text-xs font-semibold text-gray-600">No. of Persons</th>
+                      )}
+                      {editableServiceItems.some(item => item.item_category === "vehicle") && (
+                        <th className="p-3 text-xs font-semibold text-gray-600">Vehicle No.</th>
+                      )}
                       <th className="p-3 text-xs font-semibold text-gray-600">Rate</th>
-                      <th className="p-3 text-xs font-semibold text-gray-600">Amount</th>
+                      <th className="p-3 text-xs font-semibold text-gray-600">Total Amount</th>
                       <th className="p-3 text-xs font-semibold text-gray-600">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedServiceItems.map(item => (
+                    {editableServiceItems.map(item => (
                       <tr key={item.id} className="border-b border-gray-100">
                         <td className="p-3 text-sm text-gray-800">{item.item_code}</td>
                         <td className="p-3 text-sm text-gray-800">{item.description}</td>
-                        <td className="p-3 text-sm text-gray-800">{item.unit}</td>
+                        <td className="p-3 text-sm text-gray-800">{item.item_category}</td>
+                        <td className="p-3">
+                          <input
+                            type="number"
+                            value={item.no_of_days}
+                            onChange={(e) => {
+                              const value = Number(e.target.value);
+                              updateEditableServiceItem(item.id, 'no_of_days', value);
+                              updateEditableServiceItem(item.id, 'total_amount', calculateItemTotal({...item, no_of_days: value}));
+                            }}
+                            className="border rounded p-1.5 w-16 text-sm focus:ring-1 focus:ring-blue-400"
+                            min="0"
+                          />
+                        </td>
+                        <td className="p-3">
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => {
+                              const value = Number(e.target.value);
+                              updateEditableServiceItem(item.id, 'quantity', value);
+                              updateEditableServiceItem(item.id, 'total_amount', calculateItemTotal({...item, quantity: value}));
+                            }}
+                            className="border rounded p-1.5 w-16 text-sm focus:ring-1 focus:ring-blue-400"
+                            min="0"
+                          />
+                        </td>
+                        {item.item_category !== "vehicle" && (
+                          <td className="p-3">
+                            <input
+                              type="number"
+                              value={item.no_of_persons}
+                              onChange={(e) => {
+                                const value = Number(e.target.value);
+                                updateEditableServiceItem(item.id, 'no_of_persons', value);
+                                updateEditableServiceItem(item.id, 'total_amount', calculateItemTotal({...item, no_of_persons: value}));
+                              }}
+                              className="border rounded p-1.5 w-16 text-sm focus:ring-1 focus:ring-blue-400"
+                              min="0"
+                            />
+                          </td>
+                        )}
+                        {item.item_category === "vehicle" && (
+                          <td className="p-3">
+                            <input
+                              type="text"
+                              value={item.vehicle_no || ""}
+                              onChange={(e) => updateEditableServiceItem(item.id, 'vehicle_no', e.target.value)}
+                              className="border rounded p-1.5 w-24 text-sm focus:ring-1 focus:ring-blue-400"
+                              placeholder="Vehicle No."
+                            />
+                          </td>
+                        )}
                         <td className="p-3 text-sm text-gray-800">${item.rate}</td>
-                        <td className="p-3 text-sm text-gray-800">${item.total_amount}</td>
+                        <td className="p-3 text-sm font-medium text-gray-800">${item.total_amount.toFixed(2)}</td>
                         <td className="p-3">
                           <button
                             type="button"
@@ -882,7 +1517,7 @@ const EditInvoiceModal = ({
                 type="text"
                 value={`$${calculateSubtotal().toFixed(2)}`}
                 readOnly
-                className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+                className="border rounded-lg p-2.5 bg-gray-100 text-sm font-medium"
               />
             </div>
             <div className="flex flex-col">
@@ -901,9 +1536,9 @@ const EditInvoiceModal = ({
               <label className="text-xs font-semibold mb-1 text-gray-600">VAT Amount</label>
               <input
                 type="text"
-                value={`$${calculateVat().toFixed(2)}`}
+                value={`$${(calculateSubtotal() * (vatRate / 100)).toFixed(2)}`}
                 readOnly
-                className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+                className="border rounded-lg p-2.5 bg-gray-100 text-sm font-medium"
               />
             </div>
             <div className="flex flex-col">
@@ -922,16 +1557,20 @@ const EditInvoiceModal = ({
               <label className="text-xs font-semibold mb-1 text-gray-600">Markup Amount</label>
               <input
                 type="text"
-                value={`$${calculateMarkup().toFixed(2)}`}
+                value={`$${(calculateSubtotal() * (markupRate / 100)).toFixed(2)}`}
                 readOnly
-                className="border rounded-lg p-2.5 bg-gray-100 text-sm"
+                className="border rounded-lg p-2.5 bg-gray-100 text-sm font-medium"
               />
             </div>
             <div className="flex flex-col">
               <label className="text-xs font-semibold mb-1 text-gray-600">Grand Total</label>
               <input
                 type="text"
-                value={`$${calculateGrandTotal().toFixed(2)}`}
+                value={`$${(
+                  calculateSubtotal() +
+                  (calculateSubtotal() * (vatRate / 100)) +
+                  (calculateSubtotal() * (markupRate / 100))
+                ).toFixed(2)}`}
                 readOnly
                 className="border rounded-lg p-2.5 bg-gray-100 text-sm font-bold text-blue-600"
               />
@@ -943,7 +1582,11 @@ const EditInvoiceModal = ({
         <div className="flex justify-end gap-3 pt-4 border-t">
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              onClose();
+              setEditableServiceItems([]);
+              setSearchTerm("");
+            }}
             className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition"
           >
             Cancel
@@ -952,7 +1595,13 @@ const EditInvoiceModal = ({
             type="submit"
             onClick={(e) => {
               e.preventDefault();
-              onSubmit({ ...form, service_items: selectedServiceItems, amount: calculateGrandTotal() });
+              onSubmit({
+                ...form,
+                service_items: editableServiceItems,
+                amount: calculateSubtotal() + (calculateSubtotal() * (vatRate / 100)) + (calculateSubtotal() * (markupRate / 100))
+              });
+              setEditableServiceItems([]);
+              setSearchTerm("");
             }}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
           >
@@ -1305,24 +1954,31 @@ export function ProjectDashboard() {
     setShowProjectModal(false);
   }, [newProject]);
 
-  const openEditProjectModal = useCallback((project) => {
-    setEditProjectId(project.id);
-    setEditProject({
-      code: project.code,
-      name: project.name,
-      description: project.description,
-      client: project.client,
-      site: project.site,
-      startDate: project.startDate,
-      endDate: project.endDate,
-      cost: project.cost,
-      revenue: project.revenue,
-      status: project.status,
-      progress: project.progress,
-      activities: project.activities || []
-    });
-    setShowEditProjectModal(true);
-  }, []);
+  // const openEditProjectModal = useCallback((project) => {
+  //   setEditProjectId(project.id);
+  //   setEditProject({
+  //     code: project.code,
+  //     name: project.name,
+  //     description: project.description,
+  //     client: project.client,
+  //     site: project.site,
+  //     startDate: project.startDate,
+  //     endDate: project.endDate,
+  //     cost: project.cost,
+  //     revenue: project.revenue,
+  //     status: project.status,
+  //     progress: project.progress,
+  //     activities: project.activities || []
+  //   });
+  //   setShowEditProjectModal(true);
+  // }, []);
+
+  const openEditInvoice = useCallback((invoice) => {
+  setSelectedInvoice(invoice);
+  setInvoiceForm({ ...invoice });
+  setEditableServiceItems(invoice.service_items || []);
+  setShowEditInvoiceModal(true);
+}, []);
 
   const saveEditProject = useCallback(() => {
     setProjects(projects => projects.map(p =>
